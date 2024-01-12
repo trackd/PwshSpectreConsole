@@ -2,16 +2,22 @@ function ConvertTo-SpectreDecoration {
     param(
         [Parameter(Mandatory)]
         [String]$String,
-        [switch]$AllowMarkup
+        [switch]$AllowMarkup,
+        [Switch]$UseCache
     )
     Write-Debug "Module: $($ExecutionContext.SessionState.Module.Name) Command: $($MyInvocation.MyCommand.Name) Param: $($PSBoundParameters.GetEnumerator())"
     if (-Not ('PwshSpectreConsole.VTCodes.Parser' -as [type])) {
         Add-PwshSpectreConsole.VTCodes
     }
-    Write-Debug "ANSI String: $String '$($String -replace '\x1B','e')'"
-    $lookup = [PwshSpectreConsole.VTCodes.Parser]::Parse($String)
+    # Write-Debug "ANSI String: $String '$($String -replace '\x1B','e')'"
+    # $lookup = [PwshSpectreConsole.VTCodes.Parser]::Parse($String)
+    if ($UseCache) {
+        $lookup = Get-CachedSpectreDecoration $String
+    }
+    else {
+        $lookup = [PwshSpectreConsole.VTCodes.Parser]::Parse($String)
+    }
     $ht = @{}
-
     foreach ($item in $lookup) {
         Write-Debug "Type: $($item.type) Value: $($item.value) Position: $($item.position) Color: $($item.color)"
         if ($item.value -eq 'None') {
@@ -21,7 +27,8 @@ function ConvertTo-SpectreDecoration {
             '4bit' {
                 if ($item.value -gt 0 -and $item.value -le 15) {
                     [Spectre.Console.Color]::FromConsoleColor($item.value)
-                } else {
+                }
+                else {
                     # spectre doesn't appear to have a way to convert from 4bit.
                     # e.g all $PSStyle colors 30-37, 40-47 and 90-97, 100-107
                     # this will return the closest color in 8bit.
@@ -43,7 +50,8 @@ function ConvertTo-SpectreDecoration {
         }
         if ($item.position -eq 'foreground') {
             $ht.fg = $conversion
-        } elseif ($item.position -eq 'background') {
+        }
+        elseif ($item.position -eq 'background') {
             $ht.bg = $conversion
         }
     }

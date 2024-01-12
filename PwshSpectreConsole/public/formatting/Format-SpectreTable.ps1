@@ -58,7 +58,8 @@ function Format-SpectreTable {
         [int]$Width,
         [switch]$HideHeaders,
         [String]$Title,
-        [switch]$AllowMarkup
+        [switch]$AllowMarkup,
+        [switch]$UseCache # beta behaviour, needs to be tested
     )
     begin {
         $table = [Table]::new()
@@ -68,6 +69,11 @@ function Format-SpectreTable {
         $rowoptions = @{}
         # maybe we could do this a bit nicer.. it's just to avoid checking for each row.
         $script:scalarDetected = $false
+        # $script:VTCache = [System.Collections.Generic.Dictionary[string, PwshSpectreConsole.VTCodes.VT+VtCode[]]]::new()
+        if ($UseCache) {
+            $script:VTCache = @{}
+            $rowoptions.UseCache = $true
+        }
         if ($Width) {
             $table.Width = $Width
         }
@@ -79,7 +85,6 @@ function Format-SpectreTable {
             $tableoptions.Title = $Title
         }
         $collector = [System.Collections.Generic.List[psobject]]::new()
-        $strip = '\x1B\[[0-?]*[ -/]*[@-~]'
         if ($AllowMarkup) {
             $rowoptions.AllowMarkup = $true
         }
@@ -88,7 +93,8 @@ function Format-SpectreTable {
         foreach ($entry in $data) {
             if ($entry -is [hashtable]) {
                 $collector.add([pscustomobject]$entry)
-            } else {
+            }
+            else {
                 $collector.add($entry)
             }
         }
@@ -112,7 +118,8 @@ function Format-SpectreTable {
             $row = New-TableRow -Entry $item @rowoptions
             if ($AllowMarkup) {
                 $table = [TableExtensions]::AddRow($table, [Markup[]]$row)
-            } else {
+            }
+            else {
                 $table = [TableExtensions]::AddRow($table, [Text[]]$row)
             }
         }
