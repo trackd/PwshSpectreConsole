@@ -62,3 +62,22 @@ class SpectreConsoleTreeGuide : IValidateSetValuesGenerator {
         return $lookup
     }
 }
+
+class ColorTransformationAttribute : ArgumentTransformationAttribute {
+    [object] Transform([EngineIntrinsics]$engine,[object]$inputData) {
+        if ($InputData -is [Spectre.Console.Color]) {
+            return $InputData
+        }
+        if ($InputData.StartsWith('#')) {
+            $hexString = $InputData -replace '^#', ''
+            $hexBytes = [System.Convert]::FromHexString($hexString)
+            return [Spectre.Console.Color]::new($hexBytes[0], $hexBytes[1], $hexBytes[2])
+        }
+        if ($InputData -is [String]) {
+            return [Spectre.Console.Color]::$InputData
+        }
+        else {
+            throw [System.ArgumentException]::new("Cannot convert '$InputData' to [Spectre.Console.Color]")
+        }
+    }
+}

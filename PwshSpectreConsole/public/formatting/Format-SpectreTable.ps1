@@ -51,9 +51,10 @@ function Format-SpectreTable {
         [object] $Data,
         [ValidateSet([SpectreConsoleTableBorder],ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [string] $Border = "Double",
-        [ValidateSpectreColor()]
+        # [ValidateSpectreColor()]
+        [ColorTransformationAttribute()]
         [ArgumentCompletionsSpectreColors()]
-        [string] $Color = $script:AccentColor.ToMarkup(),
+        [Color] $Color = $script:AccentColor,
         [ValidateScript({ $_ -gt 0 -and $_ -le (Get-HostWidth) }, ErrorMessage = "Value '{0}' is invalid. Cannot be negative or exceed console width.")]
         [int]$Width,
         [switch]$HideHeaders,
@@ -63,7 +64,7 @@ function Format-SpectreTable {
     begin {
         $table = [Table]::new()
         $table.Border = [TableBorder]::$Border
-        $table.BorderStyle = [Style]::new(($Color | Convert-ToSpectreColor))
+        $table.BorderStyle = [Style]::new($Color)
         $tableoptions = @{}
         $rowoptions = @{}
         # maybe we could do this a bit nicer.. it's just to avoid checking for each row.
@@ -79,7 +80,6 @@ function Format-SpectreTable {
             $tableoptions.Title = $Title
         }
         $collector = [System.Collections.Generic.List[psobject]]::new()
-        $strip = '\x1B\[[0-?]*[ -/]*[@-~]'
         if ($AllowMarkup) {
             $rowoptions.AllowMarkup = $true
         }
