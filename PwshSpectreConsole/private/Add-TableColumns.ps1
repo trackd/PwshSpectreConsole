@@ -45,7 +45,7 @@ function Add-TableColumns {
         }
     } else {
         # no formatting found and no properties selected, enumerating psobject.properties.name
-        Write-Debug 'PSCustomObject/Properties switch detected'
+        Write-Debug 'Adding column from psobject.properties.name'
         foreach ($prop in $Object.psobject.Properties.Name) {
             if (-Not [String]::IsNullOrEmpty($prop)) {
                 $table.AddColumn($prop) | Out-Null

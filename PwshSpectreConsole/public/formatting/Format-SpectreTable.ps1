@@ -66,7 +66,9 @@ function Format-SpectreTable {
         $table.Border = [TableBorder]::$Border
         $table.BorderStyle = [Style]::new($Color)
         $tableoptions = @{}
-        $rowoptions = @{}
+        $rowoptions = @{
+            AllowMarkup = $AllowMarkup
+        }
         # maybe we could do this a bit nicer.. it's just to avoid checking for each row.
         $script:scalarDetected = $false
         if ($Width) {
@@ -80,9 +82,6 @@ function Format-SpectreTable {
             $tableoptions.Title = $Title
         }
         $collector = [System.Collections.Generic.List[psobject]]::new()
-        if ($AllowMarkup) {
-            $rowoptions.AllowMarkup = $true
-        }
     }
     process {
         foreach ($entry in $data) {
@@ -117,7 +116,7 @@ function Format-SpectreTable {
             }
         }
         if ($Title -And $scalarDetected -eq $false) {
-            $table.Title = [TableTitle]::new($Title, [Style]::new(($Color | Convert-ToSpectreColor)))
+            $table.Title = [TableTitle]::new($Title, [Style]::new($Color))
         }
         Write-AnsiConsole $table
     }
