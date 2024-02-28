@@ -1,5 +1,4 @@
-using module "..\..\private\completions\Completers.psm1"
-using namespace Spectre.Console
+﻿using namespace Spectre.Console
 
 function Invoke-SpectreCommandWithStatus {
     <#
@@ -38,10 +37,10 @@ function Invoke-SpectreCommandWithStatus {
         [Color] $Color = $script:AccentColor
     )
     $splat = @{
-        Title = $Title
-        Spinner = [Spinner+Known]::$Spinner
+        Title        = $Title
+        Spinner      = [Spinner+Known]::$Spinner
         SpinnerStyle = [Style]::new($Color)
-        ScriptBlock = $ScriptBlock
+        ScriptBlock  = $ScriptBlock
     }
     Start-AnsiConsoleStatus @splat
 }

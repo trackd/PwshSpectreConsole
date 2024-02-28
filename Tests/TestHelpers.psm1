@@ -1,5 +1,8 @@
 using namespace Spectre.Console
 
+if (-not ([System.AppDomain]::CurrentDomain.GetAssemblies().FullName | Where-Object { $_ -like "*Spectre.Console.Testing*" })) {
+    Add-Type -Path "$PSScriptRoot/../output/PwshSpectreConsole/1.7.0/lib/net6.0Spectre.Console.Testing.dll"
+}
 function Get-RandomColor {
     $type = 1 # Get-Random -Minimum 0 -Maximum 2
     switch ($type) {

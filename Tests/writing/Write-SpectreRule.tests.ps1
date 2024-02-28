@@ -1,6 +1,6 @@
-Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
-Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
+# Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
+# Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
+# Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
 
 Describe "Write-SpectreRule" {
     InModuleScope "PwshSpectreConsole" {
@@ -14,7 +14,7 @@ Describe "Write-SpectreRule" {
             Mock Write-AnsiConsole {
                 $RenderableObject | Should -BeOfType [Spectre.Console.Rule]
                 $RenderableObject.Justification | Should -Be $justification
-                
+
                 $testConsole.Write($RenderableObject)
             }
         }

@@ -69,6 +69,8 @@ end {
         Task          = $Task
         File          = (Get-Item ([IO.Path]::Combine($PSScriptRoot, '*.build.ps1'))).FullName
         Configuration = $Configuration
+        # Debug         = $true
+        # Verbose       = $true
     }
     Invoke-Build @invokeBuildSplat
 }

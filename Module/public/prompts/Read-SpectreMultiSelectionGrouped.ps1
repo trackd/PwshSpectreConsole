@@ -1,5 +1,4 @@
-using module "..\..\private\completions\Completers.psm1"
-using namespace Spectre.Console
+﻿using namespace Spectre.Console
 
 function Read-SpectreMultiSelectionGrouped {
     <#
@@ -45,11 +44,11 @@ function Read-SpectreMultiSelectionGrouped {
         [string] $Title = "What are your favourite [$($script:AccentColor.ToMarkup())]colors[/]?",
         [array] $Choices = @(
             @{
-                Name = "The rainbow"
+                Name    = "The rainbow"
                 Choices = @("red", "orange", "yellow", "green", "blue", "indigo", "violet")
             },
             @{
-                Name = "The other colors"
+                Name    = "The other colors"
                 Choices = @("black", "grey", "white")
             }
         ),

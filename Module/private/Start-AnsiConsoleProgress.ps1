@@ -1,6 +1,8 @@
-using namespace Spectre.Console
+﻿using namespace Spectre.Console
 
-<#
+
+function Start-AnsiConsoleProgress {
+    <#
 .SYNOPSIS
 Starts an ANSI console progress bar.
 
@@ -16,7 +18,6 @@ Start-AnsiConsoleProgress {
     # Some long-running operation
 }
 #>
-function Start-AnsiConsoleProgress {
     param (
         [Parameter(Mandatory)]
         [scriptblock] $ScriptBlock
@@ -24,10 +25,10 @@ function Start-AnsiConsoleProgress {
     $resultVariableName = "AnsiConsoleProgressResult-$([guid]::NewGuid())"
     New-Variable -Name $resultVariableName -Scope "Script"
     [AnsiConsole]::Progress().Start({
-        param (
-            $ctx
-        )
-        Set-Variable -Name $resultVariableName -Value (& $ScriptBlock $ctx) -Scope "Script"
-    })
+            param (
+                $ctx
+            )
+            Set-Variable -Name $resultVariableName -Value (& $ScriptBlock $ctx) -Scope "Script"
+        })
     return Get-Variable -Name $resultVariableName -ValueOnly
 }

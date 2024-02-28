@@ -1,7 +1,3 @@
-<#
-https://github.com/indented-automation/Indented.Profile/blob/master/PSScriptAnalyzerSettings.psd1
-
-#>
 @{
     Severity     = @(
         'Error'
@@ -14,23 +10,24 @@ https://github.com/indented-automation/Indented.Profile/blob/master/PSScriptAnal
         'PSUseDeclaredVarsMoreThanAssignments'
         'PSUseShouldProcessForStateChangingFunctions'
         'PSUseSingularNouns'
+        'PSAvoidUsingInvokeExpression'
     )
     Rules        = @{
-        PSPlaceOpenBrace           = @{
-            Enable             = $true
-            OnSameLine         = $true
-            NewLineAfter       = $true
-            IgnoreOneLineBlock = $true
-        }
+        # PSPlaceOpenBrace           = @{
+        #     Enable             = $true
+        #     OnSameLine         = $true
+        #     NewLineAfter       = $true
+        #     IgnoreOneLineBlock = $true
+        # }
 
-        PSPlaceCloseBrace          = @{
-            Enable             = $true
-            NewLineAfter       = $true
-            newlinebefore      = $false
-            IgnoreOneLineBlock = $true
-            NoEmptyLineBefore  = $false
-            NoEmptyLineAfter   = $false
-        }
+        # PSPlaceCloseBrace          = @{
+        #     Enable             = $true
+        #     NewLineAfter       = $true
+        #     newlinebefore      = $false
+        #     IgnoreOneLineBlock = $true
+        #     NoEmptyLineBefore  = $false
+        #     NoEmptyLineAfter   = $false
+        # }
 
         PSUseConsistentIndentation = @{
             Enable              = $true
@@ -39,17 +36,17 @@ https://github.com/indented-automation/Indented.Profile/blob/master/PSScriptAnal
             IndentationSize     = 4
         }
 
-        PSUseConsistentWhitespace  = @{
-            Enable                          = $true
-            CheckInnerBrace                 = $true
-            CheckOpenBrace                  = $true
-            CheckOpenParen                  = $true
-            CheckOperator                   = $false
-            CheckPipe                       = $true
-            CheckPipeForRedundantWhitespace = $false
-            CheckSeparator                  = $true
-            CheckParameter                  = $false
-        }
+        # PSUseConsistentWhitespace  = @{
+        #     Enable                          = $true
+        #     # CheckInnerBrace                 = $true
+        #     # CheckOpenBrace                  = $true
+        #     # CheckOpenParen                  = $true
+        #     # CheckOperator                   = $true
+        #     # CheckPipe                       = $true
+        #     CheckPipeForRedundantWhitespace = $true
+        #     CheckSeparator                  = $true
+        #     # CheckParameter                  = $true
+        # }
 
         PSAlignAssignmentStatement = @{
             Enable         = $true

@@ -1,5 +1,4 @@
-using module "..\..\private\completions\Completers.psm1"
-using namespace Spectre.Console
+﻿using namespace Spectre.Console
 
 function Format-SpectreJson {
     <#
@@ -88,7 +87,7 @@ function Format-SpectreJson {
         $collector = [System.Collections.Generic.List[psobject]]::new()
         $splat = @{
             WarningAction = 'Ignore'
-            ErrorAction  = 'Stop'
+            ErrorAction   = 'Stop'
         }
         if ($Depth) {
             $splat.Depth = $Depth

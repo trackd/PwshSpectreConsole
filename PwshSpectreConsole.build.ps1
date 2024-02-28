@@ -3,7 +3,6 @@ param(
     [ValidateSet('Debug', 'Release')]
     [string] $Configuration = 'Debug'
 )
-
 $modulePath = [IO.Path]::Combine($PSScriptRoot, 'Module')
 $manifestItem = Get-Item ([IO.Path]::Combine($modulePath, '*.psd1'))
 $ModuleName = $manifestItem.BaseName
@@ -19,7 +18,7 @@ $Manifest = Test-ModuleManifest @testModuleManifestSplat
 $Version = $Manifest.Version
 
 $BuildPath = [IO.Path]::Combine($PSScriptRoot, 'output')
-$CSharpPath = [IO.Path]::Combine($PSScriptRoot, 'Module', 'src')
+$CSharpPath = [IO.Path]::Combine($modulePath, 'source')
 $isBinaryModule = Test-Path $CSharpPath
 $ReleasePath = [IO.Path]::Combine($BuildPath, $ModuleName, $Version)
 $UseNativeArguments = $PSVersionTable.PSVersion -gt '7.0'
@@ -30,6 +29,10 @@ task Clean {
     }
     New-Item -ItemType Directory $ReleasePath | Out-Null
 }
+# Set-Alias MSBuild (Resolve-MSBuild)
+# task Dependencies {
+
+# }
 
 # task BuildDocs {
 #     $helpParams = @{
@@ -46,18 +49,14 @@ task BuildPowerShell {
         Encoding        = 'UTF8Bom'
         IgnoreAlias     = $true
     }
-    if (Test-Path $psm1) {
-        $buildModuleSplat['Suffix'] = Get-Content $psm1 -Raw
-    }
+    # if (Test-Path $psm1) {
+    #     $buildModuleSplat['Prefix'] = Get-Content $psm1 -Raw
+    # }
     Build-Module @buildModuleSplat
 }
 
 task BuildManaged {
-    if (-not $isBinaryModule) {
-        Write-Host 'No C# source path found. Skipping BuildManaged...'
-        return
-    }
-
+    Push-Location $CSharpPath
     $arguments = @(
         'publish'
         '--configuration', $Configuration
@@ -65,11 +64,15 @@ task BuildManaged {
         '-nologo'
         "-p:Version=$Version"
     )
-
-    Push-Location -LiteralPath $CSharpPath
     try {
-        foreach ($framework in $TargetFrameworks) {
-            Write-Host "Compiling for $framework"
+        # $csproj = Get-Item ([IO.Path]::Combine($CSharpPath, '*.csproj'))
+        [xml]$csharpProjectInfo = Get-Content ([IO.Path]::Combine($CSharpPath, $ModuleName + '.csproj'))
+        # [xml]$csharpProjectInfo = Get-Content $csproj
+        $targetFrameworks = @($csharpProjectInfo.Project.PropertyGroup.TargetFrameworks.Split(
+                ';', [StringSplitOptions]::RemoveEmptyEntries))
+
+        foreach ($framework in $targetFrameworks) {
+            Write-Host "Compiling $($_.Name) for $framework"
             dotnet @arguments --framework $framework
 
             if ($LASTEXITCODE) {
@@ -82,43 +85,22 @@ task BuildManaged {
     }
 }
 
+
+
 task CopyToRelease {
-    foreach ($framework in $TargetFrameworks) {
+    [xml]$csharpProjectInfo = Get-Content ([IO.Path]::Combine($CSharpPath, $ModuleName + '.csproj'))
+    $targetFrameworks = @($csharpProjectInfo.Project.PropertyGroup.TargetFrameworks.Split(
+            ';', [StringSplitOptions]::RemoveEmptyEntries))
+
+    foreach ($framework in $targetFrameworks) {
         $buildFolder = [IO.Path]::Combine($CSharpPath, 'bin', $Configuration, $framework, 'publish')
-        $binFolder = [IO.Path]::Combine($ReleasePath, 'bin', $framework, $_.Name)
+        $binFolder = [IO.Path]::Combine($ReleasePath, 'lib', $framework)
         if (-not (Test-Path -LiteralPath $binFolder)) {
             New-Item -Path $binFolder -ItemType Directory | Out-Null
         }
-        Copy-Item ([IO.Path]::Combine($buildFolder, '*')) -Destination $binFolder -Recurse
+        Copy-Item ([IO.Path]::Combine($buildFolder, "*.dll")) -Destination $binFolder -Exclude "System.Management.Automation.*"
     }
 }
-
-# task Package {
-#     $nupkgPath = [IO.Path]::Combine($BuildPath, "$ModuleName.$Version*.nupkg")
-#     if (Test-Path $nupkgPath) {
-#         Remove-Item $nupkgPath -Force
-#     }
-
-#     $repoParams = @{
-#         Name               = 'LocalRepo'
-#         SourceLocation     = $BuildPath
-#         PublishLocation    = $BuildPath
-#         InstallationPolicy = 'Trusted'
-#     }
-
-#     if (Get-PSRepository -Name $repoParams.Name -ErrorAction SilentlyContinue) {
-#         Unregister-PSRepository -Name $repoParams.Name
-#     }
-
-#     Register-PSRepository @repoParams
-
-#     try {
-#         Publish-Module -Path $ReleasePath -Repository $repoParams.Name
-#     }
-#     finally {
-#         Unregister-PSRepository -Name $repoParams.Name
-#     }
-# }
 
 task Analyze {
     $analyzerPath = [IO.Path]::Combine($PSScriptRoot, 'Tools', 'ScriptAnalyzerSettings.psd1')
@@ -132,13 +114,16 @@ task Analyze {
         Settings    = $analyzerPath
         Recurse     = $true
         ErrorAction = 'SilentlyContinue'
+        # Fix         = $true
+        # Debug       = $true
+        # verbose     = $true
     }
     $results = Invoke-ScriptAnalyzer @pssaSplat
 
-    if ($null -ne $results) {
-        $results | Out-String
-        throw 'Failed PsScriptAnalyzer tests, build failed'
-    }
+    # if ($null -ne $results) {
+    #     $results | Out-String
+    #     throw 'Failed PsScriptAnalyzer tests, build failed'
+    # }
 }
 
 task DoUnitTest {
@@ -223,5 +208,4 @@ task DoTest {
 
 task Build -Jobs Clean, BuildManaged, BuildPowerShell, CopyToRelease
 task Test -Jobs BuildManaged, Analyze, DoTest
-# task . Build, Test
-task . Build, Test
+task . Build

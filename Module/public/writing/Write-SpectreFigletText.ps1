@@ -1,5 +1,4 @@
-using module "..\..\private\completions\Completers.psm1"
-using namespace Spectre.Console
+﻿using namespace Spectre.Console
 
 function Write-SpectreFigletText {
     <#
@@ -36,7 +35,7 @@ function Write-SpectreFigletText {
     ░██ ██░██░██░██░░░██░██   ░██  ███████    ██  ░██
     ░████ ░░████░██  ░██░██   ░██ ██░░░░██   ░░   ░░
     ░██░   ░░░██░██  ░██░░██████ ░░████████   ██   ██
-    ░░       ░░ ░░   ░░  ░░░░░░   ░░░░░░░░   ░░   ░░ 
+    ░░       ░░ ░░   ░░  ░░░░░░   ░░░░░░░░   ░░   ░░
     #>
     [Reflection.AssemblyMetadata("title", "Write-SpectreFigletText")]
     param (

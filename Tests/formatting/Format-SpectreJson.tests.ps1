@@ -1,6 +1,6 @@
-Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
-Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
+# Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
+# Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
+# Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
 
 Describe "Format-SpectreJson" {
     InModuleScope "PwshSpectreConsole" {
@@ -114,7 +114,7 @@ Describe "Format-SpectreJson" {
             $roundtrip = $testConsole.Output | StripAnsi | ConvertFrom-Json
             (Compare-Object -ReferenceObject $data -DifferenceObject $roundtrip -Property Name, Age, City -CaseSensitive -IncludeEqual).SideIndicator | Should -Be @('==','==')
         }
-        
+
         It "Should roundtrip json string input" {
             $ht = @{}
             Get-RandomList -MinItems 30 -MaxItems 50 | ForEach-Object {

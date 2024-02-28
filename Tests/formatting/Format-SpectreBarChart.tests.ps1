@@ -1,7 +1,8 @@
-Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
+# Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
+# Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
+$Latest = Get-ChildItem $PSScriptRoot/../../output/PwshSpectreConsole/*/PwshSpectreConsole.psd1 | Select-Object -Last 1
 Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
-
+Import-Module $Latest.FullName -Force
 Describe "Format-SpectreBarChart" {
     InModuleScope "PwshSpectreConsole" {
 
@@ -38,7 +39,7 @@ Describe "Format-SpectreBarChart" {
             $testData | Format-SpectreBarChart -Title $testTitle -Width $testWidth
             Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
         }
-        
+
         It "Should handle single input correctly" {
             $testData = New-SpectreChartItem -Label (Get-RandomString) -Value (Get-Random -Minimum -100 -Maximum 100) -Color (Get-RandomColor)
             Format-SpectreBarChart -Data $testData -Title $testTitle -Width $testWidth

@@ -26,8 +26,9 @@ PwshSpectreConsole/packages
 PwshSpectreConsole.Tests/packages
 
 # Exclude working folder
-Working/
+Working/*
 output/*
-Tools/Modules
+Tools/Modules/*
 coverage.xml
-Module/packages
+packages/*
+Module/packages/*

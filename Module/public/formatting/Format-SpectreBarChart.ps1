@@ -1,4 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
 using namespace Spectre.Console
 
 function Format-SpectreBarChart {
@@ -29,7 +28,7 @@ function Format-SpectreBarChart {
     $data += New-SpectreChartItem -Label "Apples" -Value 10 -Color "Green"
     $data += New-SpectreChartItem -Label "Oranges" -Value 5 -Color "DarkOrange"
     $data += New-SpectreChartItem -Label "Bananas" -Value 2.2 -Color "#FFFF00"
-    
+
     Format-SpectreBarChart -Data $data -Title "Fruit Sales" -Width 50
     #>
     [Reflection.AssemblyMetadata("title", "Format-SpectreBarChart")]

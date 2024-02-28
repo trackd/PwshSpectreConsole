@@ -1,6 +1,6 @@
-Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
-Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
+# Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
+# Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
+# Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
 
 $script:originalConsole = [Spectre.Console.AnsiConsole]::Console
 

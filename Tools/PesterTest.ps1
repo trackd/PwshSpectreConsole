@@ -18,7 +18,6 @@ param (
 )
 
 $ErrorActionPreference = 'Stop'
-
 $requirements = Import-PowerShellDataFile ([IO.Path]::Combine($PSScriptRoot, 'requiredModules.psd1'))
 foreach ($req in $requirements.GetEnumerator() | Sort-Object { $_.Value['Priority'] }) {
     $importModuleSplat = @{
@@ -50,6 +49,8 @@ foreach ($req in $requirements.GetEnumerator() | Sort-Object { $_.Value['Priorit
     } |
     Format-List |
     Out-Host
+
+Import-Module '../Tests/Testhelpers.psm1'
 
 $configuration = [PesterConfiguration]::Default
 $configuration.Output.Verbosity = 'Detailed'

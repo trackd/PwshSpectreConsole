@@ -1,4 +1,4 @@
-using namespace Spectre.Console
+﻿using namespace Spectre.Console
 
 <#
 .SYNOPSIS
@@ -40,8 +40,8 @@ function Get-SpectreDemoColors {
             }
         }
         return [pscustomobject]@{
-            Name = $_
-            Prefix = $prefix
+            Name    = $_
+            Prefix  = $prefix
             Numeric = $value
         }
     } | Sort-Object -Property @{Expression = "Prefix"}, @{Expression = "Numeric"} | Select-Object -ExpandProperty Name

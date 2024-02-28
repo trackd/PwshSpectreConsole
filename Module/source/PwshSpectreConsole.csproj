@@ -1,14 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <AssemblyName>PwshSpectreConsole</AssemblyName>
-        <!-- <TargetFrameworks>net6.0</TargetFrameworks> -->
-        <TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>
+        <TargetFrameworks>net6.0</TargetFrameworks>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <Nullable>enable</Nullable>
+        <!-- <Nullable>enable</Nullable> -->
         </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Spectre.Console" Version="0.48.0" />
+        <PackageReference Include="Spectre.Console.Json" Version="0.48.0" />
+        <PackageReference Include="Spectre.Console.Testing" Version="0.48.0" />
+        <PackageReference Include="Spectre.Console.ImageSharp" Version="0.48.0" />
+        <!-- <PackageReference Include="SixLabors.ImageSharp" /> -->
         <!-- <PackageReference Include="System.Management.Automation" Version="7.4.0" PrivateAssets="all" /> -->
         <PackageReference Include="System.Management.Automation" Version="7.2.0" PrivateAssets="all" />
         <AdditionalFiles Include="stylecop.json" />

@@ -1,4 +1,4 @@
-function Add-SpectreJob {
+﻿function Add-SpectreJob {
     <#
     .SYNOPSIS
     Adds a Spectre job to a list of jobs.
@@ -42,7 +42,7 @@ function Add-SpectreJob {
     )
 
     return @{
-        Job = $Job
+        Job  = $Job
         Task = $Context.AddTask($JobName)
     }
 }

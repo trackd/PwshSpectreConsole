@@ -1,4 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
 using namespace Spectre.Console
 
 function Write-SpectreCalendar {

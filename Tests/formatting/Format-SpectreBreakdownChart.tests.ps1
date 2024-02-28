@@ -1,6 +1,6 @@
-Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
-Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
+# Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
+# Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
+# Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
 
 Describe "Format-SpectreBreakdownChart" {
     InModuleScope "PwshSpectreConsole" {
@@ -30,12 +30,12 @@ Describe "Format-SpectreBreakdownChart" {
             Format-SpectreBreakdownChart -Data $testData -Width $testWidth
             Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
         }
-        
+
         It "Should handle piped input correctly" {
             $testData | Format-SpectreBreakdownChart -Width $testWidth
             Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
         }
-        
+
         It "Should handle single input correctly" {
             $testData = New-SpectreChartItem -Label (Get-RandomString) -Value (Get-Random -Minimum -100 -Maximum 100) -Color (Get-RandomColor)
             Format-SpectreBreakdownChart -Data $testData -Width $testWidth

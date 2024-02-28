@@ -1,6 +1,6 @@
-Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
-Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
+# Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
+# Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
+# Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
 
 Describe "Format-SpectreTable" {
     InModuleScope "PwshSpectreConsole" {
@@ -159,7 +159,7 @@ Describe "Format-SpectreTable" {
             $clean | Should -Be '{1}'
             Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
         }
-        
+
         It "Should be able to use calculated properties" {
             $testData = Get-Process -Id $pid
             $testBorder = 'Markdown'

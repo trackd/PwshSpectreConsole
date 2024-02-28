@@ -1,5 +1,4 @@
 using namespace Spectre.Console
-
 function Get-SpectreProfile {
     [CmdletBinding()]
     param ()

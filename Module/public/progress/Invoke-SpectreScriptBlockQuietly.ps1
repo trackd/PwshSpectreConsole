@@ -1,6 +1,8 @@
-<#
+
+function Invoke-SpectreScriptBlockQuietly {
+    <#
 .SYNOPSIS
-    This is a test function for invoking a script block in a background job inside Invoke-SpectreCommandWithProgress to help with https://github.com/ShaunLawrie/PwshSpectreConsole/issues/7  
+    This is a test function for invoking a script block in a background job inside Invoke-SpectreCommandWithProgress to help with https://github.com/ShaunLawrie/PwshSpectreConsole/issues/7
     Some commands cause output that interferes with the progress bar, this function is an attempt to suppress that output when all other attempts have failed.
     :::caution
     This is experimental.
@@ -16,7 +18,6 @@
         }
     }
 #>
-function Invoke-SpectreScriptBlockQuietly {
     [Reflection.AssemblyMetadata("title", "Invoke-SpectreScriptBlockQuietly")]
     param (
         # The script block to be invoked.
@@ -33,7 +34,7 @@ function Invoke-SpectreScriptBlockQuietly {
             $job | Receive-Job
             throw "Failed to execute script block"
         }
-        
+
         switch($Level) {
             "Quiet" {
                 return ($job | Receive-Job)

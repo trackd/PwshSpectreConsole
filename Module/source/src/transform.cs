@@ -231,25 +231,25 @@ namespace PwshSpectreConsole
                 if (fgColor == Color.Default && bgColor == Color.Default && decoration == Decoration.None)
                 {
                     // [Markup]::new($String, [Style]::new($ht.fg, $ht.bg, $ht.decoration))
-                    // sb.Append(vtObject.Text);
-                    _markup = new Markup(vtObject.Text, new Style(fgColor, bgColor, decoration));
-                    sb.append(_markup.ToMarkUp());
+                    sb.Append(vtObject.Text);
+                    // _markup = new Markup(vtObject.Text, new Style(fgColor, bgColor, decoration));
+                    // sb.append(_markup.ToMarkUp());
                     // dont inject `e]0m into the string.
                     continue;
                 }
                 if (decoration != null && decoration != Decoration.None)
                 {
                     // decoration is set to something other than None.
-                    // sb.Append($"[{decoration} {fgColor.ToMarkup()} on {bgColor.ToMarkup()}]{vtObject.Text}[/]");
-                    _markup = new Markup(vtObject.Text, new Style(fgColor, bgColor, decoration));
-                    sb.append(_markup.ToMarkUp());
+                    sb.Append($"[{decoration} {fgColor.ToMarkup()} on {bgColor.ToMarkup()}]{vtObject.Text}[/]");
+                    // _markup = new Markup(vtObject.Text, new Style(fgColor, bgColor, decoration));
+                    // sb.append(_markup.ToMarkUp());
                 }
                 else
                 {
                     // no decoration is set.
-                    // sb.Append($"[{fgColor.ToMarkup()} on {bgColor.ToMarkup()}]{vtObject.Text}[/]");
-                    _markup = new Markup(vtObject.Text, new Style(fgColor, bgColor));
-                    sb.append(_markup.ToMarkUp());
+                    sb.Append($"[{fgColor.ToMarkup()} on {bgColor.ToMarkup()}]{vtObject.Text}[/]");
+                    // _markup = new Markup(vtObject.Text, new Style(fgColor, bgColor));
+                    // sb.append(_markup.ToMarkUp());
                 }
             }
             if (AsString)

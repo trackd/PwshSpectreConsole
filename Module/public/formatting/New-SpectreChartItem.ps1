@@ -1,8 +1,7 @@
-using module "..\..\private\models\SpectreChartItem.psm1"
-using module "..\..\private\completions\Completers.psm1"
 using namespace Spectre.Console
 
-<#
+function New-SpectreChartItem {
+    <#
 .SYNOPSIS
 Creates a new SpectreChartItem object.
 
@@ -26,7 +25,6 @@ $data += New-SpectreChartItem -Label "Expenses" -Value 500 -Color "#ff0000"
 $data += New-SpectreChartItem -Label "Profit" -Value 500 -Color ([Spectre.Console.Color]::Blue)
 
 #>
-function New-SpectreChartItem {
     [Reflection.AssemblyMetadata("title", "New-SpectreChartItem")]
     param (
         [Parameter(Mandatory)]
