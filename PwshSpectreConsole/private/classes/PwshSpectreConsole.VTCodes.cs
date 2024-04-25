@@ -70,22 +70,53 @@ namespace PwshSpectreConsole.VTCodes
             {
                 return (null, 0);
             }
-            // Skip the '[' character after ESC
-            var sliceStart = escIndex + 2;
-            if (sliceStart >= inputSpan.Length)
+
+            // Check if the next character is '[' or ']'
+            var nextChar = inputSpan[escIndex + 1];
+            if (nextChar == '[')
             {
+                // Handle the normal VT codes
+                var sliceStart = escIndex + 2;
+                if (sliceStart >= inputSpan.Length)
+                {
+                    return (null, 0);
+                }
+                var slice = inputSpan.Slice(sliceStart);
+                var endIndex = slice.IndexOf('m');
+                if (endIndex == -1)
+                {
+                    return (null, 0);
+                }
+                var vtCode = slice.Slice(0, endIndex).ToString();
+                var placement = sliceStart + endIndex - vtCode.Length;
+                inputSpan = inputSpan.Slice(placement);
+                return (vtCode, placement);
+            }
+            // else if (nextChar == ']')
+            // {
+            //     // todo handle links
+            //     // ␛]8;;https:://LINKHERE␛\VISIBLENAMEHERE␛]8;;␛\
+            //     var sliceStart = escIndex + 2;
+            //     if (sliceStart >= inputSpan.Length)
+            //     {
+            //         return (null, 0);
+            //     }
+            //     var slice = inputSpan.Slice(sliceStart);
+            //     var endIndex = slice.IndexOf('\x07');
+            //     if (endIndex == -1)
+            //     {
+            //         return (null, 0);
+            //     }
+            //     var vtCode = slice.Slice(0, endIndex).ToString();
+            //     var placement = sliceStart + endIndex - vtCode.Length;
+            //     inputSpan = inputSpan.Slice(placement);
+            //     return (vtCode, placement);
+            // }
+            else
+            {
+                // Invalid VT code
                 return (null, 0);
             }
-            var slice = inputSpan.Slice(sliceStart);
-            var endIndex = slice.IndexOf('m');
-            if (endIndex == -1)
-            {
-                return (null, 0);
-            }
-            var vtCode = slice.Slice(0, endIndex).ToString();
-            var placement = sliceStart + endIndex - vtCode.Length;
-            inputSpan = inputSpan.Slice(placement);
-            return (vtCode, placement);
         }
         private static VT.VtCode New4BitVT(int firstCode, int placement)
         {
@@ -173,7 +204,6 @@ namespace PwshSpectreConsole.VTCodes
                 {
                     break;
                 }
-
                 var codeParts = slice.Split(';');
                 if (codeParts.Length > 0)
                 {
