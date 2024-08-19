@@ -1,0 +1,38 @@
+﻿<Types>
+    <!-- <Type>
+        <Name>Spectre.Console.Rendering.Renderable</Name>
+        <Members>
+            <CodeProperty>
+                <Name>Name</Name>
+                <GetCodeReference>
+                    <TypeName>System.String</TypeName>
+                    <MethodName>ToString</MethodName>
+                </GetCodeReference>
+            </CodeProperty>
+        </Members>
+    </Type> -->
+    <Type>
+        <Name>Spectre.Console.Rendering.Renderable</Name>
+        <Members>
+            <ScriptMethod>
+                <Name>ToString</Name>
+                <Script>
+                    try {
+                        # move this to C# for performance later
+                        $writer = [System.IO.StringWriter]::new()
+                        $output = [Spectre.Console.AnsiConsoleOutput]::new($writer)
+                        $settings = [Spectre.Console.AnsiConsoleSettings]::new()
+                        $settings.Out = $output
+                        $console = [Spectre.Console.AnsiConsole]::Create($settings)
+                        $console.Profile.Width = $host.UI.RawUI.BufferSize.Width - 1
+                        $console.Write($this)
+                        $writer.ToString().TrimEnd()
+                    }
+                    finally {
+                        $writer.Dispose()
+                    }
+            </Script>
+            </ScriptMethod>
+        </Members>
+    </Type>
+</Types>

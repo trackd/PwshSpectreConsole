@@ -87,31 +87,36 @@ function Format-SpectreJson {
     }
     process {
         if ($MyInvocation.ExpectingInput) {
-            if ($data -is [string]) {
-                if ($data.pschildname) {
+            if ($data -is [string] -And -Not [String]::IsNullOrEmpty($data)) {
+                if ($data.pschildname -And $data.pschildname.EndSwith('.json')) {
+                    # this is when someone does Get-Content file.json | Format-SpectreJson
                     if (-Not $ht.contains($data.pschildname)) {
                         $ht[$data.pschildname] = [System.Text.StringBuilder]::new()
                     }
                     return [void]$ht[$data.pschildname].AppendLine($data)
                 }
-                # assume we get the entire json in one go a string (e.g -Raw or invoke-webrequest)
                 try {
-                    $jsonObjects = $data | Out-String | ConvertFrom-Json -AsHashtable @splat
-                    return $collector.add($jsonObjects)
-                } catch {
-                    Write-Debug "Failed to convert string to object, $_"
+                    if (-Not $ht.contains('InputString')) {
+                        $ht['InputString'] = [System.Text.StringBuilder]::new()
+                    }
+                    Write-Debug "adding string to stringbuilder, $data"
+                    return [void]$ht['InputString'].AppendLine($data.Trim())
+                }
+                catch {
+                    Write-Debug "Failed to add string to stringbuilder, $_"
+                    return $collector.add($data)
                 }
             }
             if ($data -is [System.IO.FileSystemInfo]) {
+                # if someone pipes a fileinfo object
                 if ($data.Extension -eq '.json') {
                     Write-Debug "json file found, reading $($data.FullName)"
                     try {
-                        $jsonObjects = Get-Content -Raw $data.FullName | ConvertFrom-Json -AsHashtable @splat
-                        return $collector.add($jsonObjects)
-                    } catch {
-                        Write-Debug "Failed to convert json to object, $_"
+                        return $ht[$data.Name] = Get-Content -Raw $data.FullName
                     }
-                    
+                    catch {
+                        Write-Debug "Failed to add $_"
+                    }
                 }
                 return $collector.add(
                     [pscustomobject]@{
@@ -120,8 +125,6 @@ function Format-SpectreJson {
                         Type     = $data.GetType().Name.TrimEnd('Info')
                     })
             }
-            Write-Debug "adding item from pipeline"
-            return $collector.add($data)
         }
         foreach ($item in $data) {
             Write-Debug "adding item from input"
@@ -129,14 +132,14 @@ function Format-SpectreJson {
         }
     }
     end {
-        if ($ht.keys.count -gt 0) {
-            foreach ($key in $ht.Keys) {
+        if ($ht.count) {
+            foreach ($key in $ht.GetEnumerator()) {
                 Write-Debug "converting json stream to object, $key"
                 try {
-                    $jsonObject = $ht[$key].ToString() | Out-String | ConvertFrom-Json -AsHashtable @splat
+                    $jsonObject = $ht[$key].ToString().Trim() | Out-String | ConvertFrom-Json -AsHashtable @splat
                     $collector.add($jsonObject)
-                    continue
-                } catch {
+                }
+                catch {
                     Write-Debug "Failed to convert json to object: $key, $_"
                 }
             }
@@ -146,7 +149,8 @@ function Format-SpectreJson {
         }
         try {
             $json = [Spectre.Console.Json.JsonText]::new(($collector | ConvertTo-Json @splat))
-        } catch {
+        }
+        catch {
             Write-Error "Failed to convert to json, $_"
             return
         }

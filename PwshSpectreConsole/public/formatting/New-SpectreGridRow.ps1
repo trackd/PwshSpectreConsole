@@ -12,12 +12,11 @@ function New-SpectreGridRow {
         [array]$Data
     )
 
-    $renderableColumns = @()
-    foreach ($column in $Data) {
-        $renderableColumns += ConvertTo-Renderable $column
+    $renderableColumns = foreach ($column in $Data) {
+        ConvertTo-Renderable $column
     }
 
     $gridRow = [SpectreGridRow]::new($renderableColumns)
-    
+
     return $gridRow
 }

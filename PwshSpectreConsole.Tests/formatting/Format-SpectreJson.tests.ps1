@@ -60,8 +60,8 @@ Describe "Format-SpectreJson" {
         It "Simple scalar array test" {
             {
                 $numbers = Get-Random -Minimum 30 -Maximum 50
-                1..$numbers | Format-SpectreJson | Out-SpectreHost
-                $json = $testConsole.Output | StripAnsi
+                $jsonObject = 1..$numbers | Format-SpectreJson
+                $json = $jsonObject.ToString() | StripAnsi
                 ($json.trim() -split "\r?\n").count | Should -Be ($numbers + 2) # 10 items + 2 braces
             } | Should -Not -Throw
         }
@@ -69,8 +69,8 @@ Describe "Format-SpectreJson" {
         It "Simple String test" {
             {
                 $numbers = Get-Random -Minimum 30 -Maximum 50
-                1..$numbers | ConvertTo-Json | Format-SpectreJson | Out-SpectreHost
-                $json = $testConsole.Output | StripAnsi
+                $jsonObject = 1..$numbers | ConvertTo-Json | Format-SpectreJson
+                $json = $jsonObject.ToString() | StripAnsi
                 ($json.trim() -split "\r?\n").count | Should -Be ($numbers + 2) # 10 items + 2 braces
             } | Should -Not -Throw
         }
@@ -84,7 +84,7 @@ Describe "Format-SpectreJson" {
             $roundtrip = $testConsole.Output | StripAnsi | ConvertFrom-Json
             (Compare-Object -ReferenceObject $data -DifferenceObject $roundtrip -Property Name, Age, City -CaseSensitive -IncludeEqual).SideIndicator | Should -Be @('==', '==')
         }
-        
+
         It "Should roundtrip json string input" {
             $ht = @{}
             Get-RandomList -MinItems 30 -MaxItems 50 | ForEach-Object {

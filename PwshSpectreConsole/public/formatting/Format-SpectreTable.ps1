@@ -121,6 +121,8 @@ function Format-SpectreTable {
         $table = [Spectre.Console.Table]::new()
         $table.Border = [Spectre.Console.TableBorder]::$Border
         $table.BorderStyle = [Spectre.Console.Style]::new($Color)
+        $tableoptions.color = $HeaderColor
+        $rowoptions.color = $TextColor
         switch ($PSBoundParameters.Keys) {
             'Width' { $table.Width = $Width }
             'HideHeaders' { $table.ShowHeaders = $false }
@@ -153,33 +155,30 @@ function Format-SpectreTable {
         if ($collector.count -eq 0) {
             return
         }
-        if ($FormatTableParams.Keys.Count -gt 0) {
-            Write-Debug "Using Format-Table with parameters: $($FormatTableParams.Keys -join ', ')"
-            $collector = $collector | Format-Table @FormatTableParams
-        } else {
-            $collector = $collector | Format-Table
-        }
+        $collector = $collector | Format-Table @FormatTableParams
         if (-Not $collector.shapeInfo) {
             # scalar array, no header
             $rowoptions.scalar = $tableoptions.scalar = $true
-            $table = Add-TableColumns -Table $table @tableoptions -Color $HeaderColor
+            $table = Add-TableColumns -Table $table @tableoptions
         } else {
             # grab the FormatStartData
             $Headers = Get-TableHeader $collector[0]
-            if ($Headers) {
-                $table = Add-TableColumns -Table $table -formatData $Headers -Color $HeaderColor
-            } else {
+            if (-Not $Headers) {
                 return
             }
+            $table = Add-TableColumns -Table $table -formatData $Headers -Color $HeaderColor
+        }
+        if ($renderables.Count) {
+            $rowoptions.renderables = $renderables
         }
         foreach ($item in $collector.FormatEntryInfo) {
             if ($rowoptions.scalar) {
-                $row = New-TableRow -Entry $item.Text -Renderables $renderables -Color $TextColor @rowoptions
+                $row = New-TableRow -Entry $item.Text @rowoptions
             } else {
                 if ($null -eq $item.FormatPropertyFieldList.propertyValue) {
                     continue
                 }
-                $row = New-TableRow -Entry $item.FormatPropertyFieldList.propertyValue -Renderables $renderables -Color $TextColor @rowoptions
+                $row = New-TableRow -Entry $item.FormatPropertyFieldList.propertyValue @rowoptions
             }
             if ($AllowMarkup) {
                 $table = [Spectre.Console.TableExtensions]::AddRow($table, [Spectre.Console.Markup[]]$row)
@@ -190,7 +189,6 @@ function Format-SpectreTable {
         if ($Title -And -Not $rowoptions.scalar) {
             $table.Title = [Spectre.Console.TableTitle]::new($Title, [Spectre.Console.Style]::new($Color))
         }
-
         return $table
     }
 }

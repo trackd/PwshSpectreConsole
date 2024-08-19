@@ -11,11 +11,11 @@ $script:DefaultTableTextColor = [Spectre.Console.Color]::Default
 # PS> $widget # uses the default powershell console writer
 # PS> $widget > file.txt # redirects as string data to file
 # PS> $widget | Out-SpectreHost # uses a dedicated console writer that doesn't pad the object like the default formatter
-$script:SpectreConsoleWriter = [System.IO.StringWriter]::new()
-$script:SpectreConsoleOutput = [Spectre.Console.AnsiConsoleOutput]::new($script:SpectreConsoleWriter)
-$script:SpectreConsoleSettings = [Spectre.Console.AnsiConsoleSettings]::new()
-$script:SpectreConsoleSettings.Out = $script:SpectreConsoleOutput
-$script:SpectreConsole = [Spectre.Console.AnsiConsole]::Create($script:SpectreConsoleSettings)
+# $script:SpectreConsoleWriter = [System.IO.StringWriter]::new()
+# $script:SpectreConsoleOutput = [Spectre.Console.AnsiConsoleOutput]::new($script:SpectreConsoleWriter)
+# $script:SpectreConsoleSettings = [Spectre.Console.AnsiConsoleSettings]::new()
+# $script:SpectreConsoleSettings.Out = $script:SpectreConsoleOutput
+# $script:SpectreConsole = [Spectre.Console.AnsiConsole]::Create($script:SpectreConsoleSettings)
 
 foreach ($directory in @('private', 'public')) {
     Get-ChildItem -Path "$PSScriptRoot\$directory\*.ps1" -Recurse | ForEach-Object {

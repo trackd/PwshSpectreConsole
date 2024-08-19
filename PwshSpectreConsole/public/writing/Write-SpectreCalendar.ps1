@@ -39,7 +39,7 @@ function Write-SpectreCalendar {
         '2024-01-10' = 'Hello World!'
         '2024-01-20' = 'Hello Universe!'
     }
-    Write-SpectreCalendar -Date 2024-01-01 -Events $events
+    $x = Write-SpectreCalendar -Date 2024-01-01 -Events $events
     #>
     [Reflection.AssemblyMetadata("title", "Write-SpectreCalendar")]
     param (
@@ -66,21 +66,17 @@ function Write-SpectreCalendar {
     if ($HideHeader) {
         $calendar.ShowHeader = $false
     }
-
-    $outputData = @($calendar)
-
-    if ($Events) {
-        foreach ($event in $events.GetEnumerator()) {
-            # Calendar events don't appear to support Culture.
-            $eventDate = $event.Name -as [datetime]
-            $calendar = [Spectre.Console.CalendarExtensions]::AddCalendarEvent($calendar, $event.value, $eventDate.Year, $eventDate.Month, $eventDate.Day)
-        }
-        $outputData += $calendar.CalendarEvents | Sort-Object -Property Day | Format-SpectreTable -Border $Border -Color $Color
+    if (-Not $Events) {
+        return $calendar
     }
-
-    if ($PassThru) {
-        return $outputData
+    foreach ($event in $events.GetEnumerator()) {
+        # Calendar events don't appear to support Culture.
+        $eventDate = $event.Name -as [datetime]
+        $calendar = [Spectre.Console.CalendarExtensions]::AddCalendarEvent($calendar, $event.value, $eventDate.Year, $eventDate.Month, $eventDate.Day)
     }
-    
-    $outputData | Out-SpectreHost
+    return @(
+        $calendar
+        $calendar.CalendarEvents | Sort-Object -Property Day | Format-SpectreTable -Border $Border -Color $Color
+    )
+
 }

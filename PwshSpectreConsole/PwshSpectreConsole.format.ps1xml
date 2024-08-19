@@ -12,7 +12,7 @@
             <CustomItem>
               <ExpressionBinding>
                 <ScriptBlock>
-                  $_ | Out-SpectreHost -CustomItemFormatter
+                  $_.ToString()
                 </ScriptBlock>
               </ExpressionBinding>
             </CustomItem>

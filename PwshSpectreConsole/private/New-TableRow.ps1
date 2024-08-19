@@ -20,7 +20,7 @@ function New-TableRow {
         New-TableCell -CellData $Entry -Color $Color @opts
     } else {
         # simplified, should be faster.
-        $detectVT = '\x1b'
+        $detectVT = [char]27
         $rows = foreach ($cell in $Entry) {
             if ([String]::IsNullOrEmpty($cell)) {
                 New-TableCell -Color $Color @opts
