@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Management.Automation;
+using System.IO;
+using Spectre.Console;
+using Spectre.Console.Rendering;
 
 namespace PwshSpectreConsole.VTCodes
 {
@@ -23,7 +25,18 @@ namespace PwshSpectreConsole.VTCodes
             {
                 return $"RGB({Red},{Green},{Blue})";
             }
-
+        }
+        public static string Render(Renderable renderableObject, int width)
+        {
+            using (var writer = new StringWriter())
+            {
+                var output = new AnsiConsoleOutput(writer);
+                var settings = new AnsiConsoleSettings { Out = output };
+                var spectreconsole = AnsiConsole.Create(settings);
+                spectreconsole.Profile.Width = width - 1;
+                spectreconsole.Write(renderableObject);
+                return writer.ToString().TrimEnd();
+            }
         }
     }
     public static class DecorationDictionary
@@ -63,7 +76,7 @@ namespace PwshSpectreConsole.VTCodes
     }
     public class Parser
     {
-        private static (string slice, int placement) GetNextSlice(ref ReadOnlySpan<char> inputSpan)
+        private static (string? slice, int placement) GetNextSlice(ref ReadOnlySpan<char> inputSpan)
         {
             var escIndex = inputSpan.IndexOf('\x1B');
             if (escIndex == -1)
@@ -195,4 +208,5 @@ namespace PwshSpectreConsole.VTCodes
             return results;
         }
     }
+
 }
