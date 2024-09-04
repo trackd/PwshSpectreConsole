@@ -81,9 +81,13 @@ function Format-SpectreTable {
 
     .EXAMPLE
     1..10 | Format-SpectreTable -Title Numbers
+
+    .LINK
+    https://pwshspectreconsole.com/reference/formatting/format-spectretable/
     #>
     [Reflection.AssemblyMetadata("title", "Format-SpectreTable")]
     [cmdletbinding(DefaultParameterSetName = '__AllParameterSets')]
+    [OutputType([Spectre.Console.Table])]
     [Alias('fst')]
     param(
         [Parameter(ValueFromPipeline, Mandatory)]

@@ -78,5 +78,4 @@ function Write-SpectreCalendar {
         $calendar
         $calendar.CalendarEvents | Sort-Object -Property Day | Format-SpectreTable -Border $Border -Color $Color
     )
-
 }

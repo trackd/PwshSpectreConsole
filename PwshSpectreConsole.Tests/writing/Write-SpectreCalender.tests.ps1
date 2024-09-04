@@ -7,7 +7,7 @@ Describe "Write-SpectreCalendar" {
         BeforeEach {
             $testConsole = [Spectre.Console.Testing.TestConsole]::new()
             $testConsole.EmitAnsiSequences = $true
-            
+
             $testBorder = 'Markdown'
             $testColor = Get-RandomColor
             Write-Debug $testBorder
@@ -18,9 +18,8 @@ Describe "Write-SpectreCalendar" {
         }
 
         It "writes calendar for a date" {
-            Write-SpectreCalendar -Date "2024-01-01" -Culture "en-us" -Border $testBorder -Color $testColor
-            $sample = $testConsole.Output
-            $object = $sample -split '\r?\n'
+            $testConsole = Write-SpectreCalendar -Date "2024-01-01" -Culture "en-us" -Border $testBorder -Color $testColor
+            $object = ($testConsole.ToString() | Out-String) -split '\r?\n'
             $object[0] | Should -Match 'January\s+2024'
             $rawdays = $object[2]
             $days = $rawdays -split '\|' | Get-AnsiEscapeSequence | ForEach-Object {
@@ -31,7 +30,7 @@ Describe "Write-SpectreCalendar" {
             $answer = (Get-Culture -Name en-us).DateTimeFormat.AbbreviatedDayNames
             # $days | Should -Be @('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat')
             $days | Should -Be $answer
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            # Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
         }
 
         It "writes calendar for a date with events" {
@@ -39,16 +38,16 @@ Describe "Write-SpectreCalendar" {
                 '2022-03-10' = 'Event 1'
                 '2022-03-20' = 'Event 2'
             }
-            Write-SpectreCalendar -Date "2024-03-01" -Events $events -Culture "en-us" -Border Markdown -Color $testColor
-            $sample = $testConsole.Output
+            $testConsole = Write-SpectreCalendar -Date "2024-03-01" -Events $events -Culture "en-us" -Border Markdown -Color $testColor
+            $sample = $testConsole.ToString() | Out-String
             $sample | Should -Match 'March\s+2024'
             $sample | Should -Match 'Event 1'
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 2 -Exactly
+            # Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 2 -Exactly
         }
 
         It "writes calendar for a date with something else going on" {
-            Write-SpectreCalendar -Date 2024-07-01 -HideHeader -Border Markdown -Color $testColor
-            $sample = $testConsole.Output
+            $testConsole = Write-SpectreCalendar -Date 2024-07-01 -HideHeader -Border Markdown -Color $testColor
+            $sample = $testConsole.ToString() | Out-String
             $object = $sample -split '\r?\n' | Select-Object -Skip 1 -SkipLast 3
             $object.count | Should -Be 7
             [string[]]$results = 1..31
@@ -59,20 +58,21 @@ Describe "Write-SpectreCalendar" {
                     }
                 }
             }
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            # Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
         }
 
         It "Should match the snapshot" {
-            Mock Write-AnsiConsole {
-                $testConsole.Write($RenderableObject)
-            }
+            # Mock Write-AnsiConsole {
+            #     $testConsole.Write($RenderableObject)
+            # }
             $events = @{
                 '2022-03-10' = 'Event 1'
                 '2022-03-20' = 'Event 2'
             }
             $culture = Get-Culture -Name "en-US"
-            Write-SpectreCalendar -Date 2024-07-01 -Culture $culture -Events $events -Border "Rounded" -Color "SpringGreen3"
-            { Assert-OutputMatchesSnapshot -SnapshotName "Write-SpectreCalendar" -Output $testConsole.Output } | Should -Not -Throw
+            $testConsole = Write-SpectreCalendar -Date 2024-07-01 -Culture $culture -Events $events -Border "Rounded" -Color "SpringGreen3"
+            $test = $testConsole.ToString()
+            { Assert-OutputMatchesSnapshot -SnapshotName "Write-SpectreCalendar" -Output $test } | Should -Not -Throw
         }
     }
 }

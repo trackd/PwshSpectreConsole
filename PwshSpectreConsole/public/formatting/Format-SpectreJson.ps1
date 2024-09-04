@@ -48,8 +48,12 @@ function Format-SpectreJson {
         }
     )
     Format-SpectreJson -Data $data -Color "Green"
+    .LINK
+    https://pwshspectreconsole.com/reference/formatting/format-spectrejson/
     #>
     [Reflection.AssemblyMetadata("title", "Format-SpectreJson")]
+    [cmdletbinding()]
+    [OutputType([Spectre.Console.Json.JsonText], [Spectre.Console.Panel])]
     [Alias('fsj')]
     param(
         [Parameter(ValueFromPipeline, Mandatory)]
