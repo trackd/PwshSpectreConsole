@@ -145,9 +145,10 @@ For more details see:
 }
 
 task PSScriptAnalyzer {
-    Import-Module PSScriptAnalyzer -ErrorAction Stop
-    $MergedPSM1Path = Join-Path $script:config.OutputPath "$($script:config.moduleName).psm1"
-    $psmfile = Get-Item $MergedPSM1Path
+    # this is just a bit broken, should take a look at it in the future with proper settings.
+    # Import-Module PSScriptAnalyzer -ErrorAction Stop
+    # $MergedPSM1Path = Join-Path $script:config.OutputPath "$($script:config.moduleName).psm1"
+    # $psmfile = Get-Item $MergedPSM1Path
     # $psmContent = Get-Content $psmfile.FullName -Raw
     # Invoke-Formatter -ScriptDefinition $psmContent -Settings CodeFormattingStroustrup -ErrorAction Stop | Set-Content $psmfile.FullName
     # Invoke-ScriptAnalyzer -Path $psmfile.FullName -Recurse -Severity Warning -ErrorAction Stop -IncludeDefaultRules
@@ -187,5 +188,11 @@ task Test {
     Remove-Item Env:RunMergedPsm1Tests -ErrorAction Ignore
 }
 
-task All -Jobs Clean, Build, ModuleFiles, Test
+task CleanAfter {
+    Remove-Item Env:RunMergedPsm1Tests -ErrorAction Ignore
+    if ($script:config.DestinationPath -and (Test-Path $script:config.DestinationPath)) {
+        Get-Childitem $script:config.DestinationPath -File | Where-Object { $_.Extension -in '.pdb', '.json' } | Remove-Item -Force -ErrorAction Ignore
+    }
+}
+task All -Jobs Clean, Build, ModuleFiles, CleanAfter, Test
 task TestMerge -Jobs Test
