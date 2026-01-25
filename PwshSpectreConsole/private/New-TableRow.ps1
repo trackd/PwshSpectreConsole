@@ -27,7 +27,8 @@ function New-TableRow {
                 continue
             }
             if ($cell -match $detectVT) {
-                ConvertTo-SpectreDecoration -String $cell @opts
+                # ConvertTo-SpectreDecoration -String $cell @opts
+                [PwshSpectreConsole.VTParser]::ToParagraph($cell)
                 continue
             }
             # Swap spectre renderable objects with the raw spectre renderable object

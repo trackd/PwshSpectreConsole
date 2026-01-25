@@ -1,13 +1,20 @@
-Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
-Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
+BeforeAll {
+    if (-Not (Get-Module PwshSpectreConsole)) {
+        $ModulePath = Join-Path $PSScriptRoot ".." ".." "PwshSpectreConsole" "PwshSpectreConsole.psd1"
+        Import-Module $ModulePath
+    }
+    if (-Not (Get-Module TestHelpers)) {
+        $TestHelpersPath = Join-Path $PSScriptRoot ".." "TestHelpers.psm1"
+        Import-Module $TestHelpersPath
+    }
+}
 
 Describe "Write-SpectreCalendar" {
     InModuleScope "PwshSpectreConsole" {
         BeforeEach {
             $testConsole = [Spectre.Console.Testing.TestConsole]::new()
             $testConsole.EmitAnsiSequences = $true
-            
+
             $testBorder = 'Markdown'
             $testColor = Get-RandomColor
             Write-Debug $testBorder

@@ -80,19 +80,22 @@ function Get-SpectreImage {
         $image = $null
         if ($Format -eq 'Auto') {
             if ($script:TerminalSupportsSixel -or $Force.IsPresent) {
-                $image = [Spectre.Console.SixelImage]::new($imagePathResolved)
-            } else {
-                $image = [Spectre.Console.CanvasImage]::new($imagePathResolved)
+                $image = [PwshSpectreConsole.SixelImage]::new($imagePathResolved)
             }
+            # else {
+            #     $image = [Spectre.Console.CanvasImage]::new($imagePathResolved)
+            # }
         } elseif ($Format -eq 'Sixel') {
             if ($script:TerminalSupportsSixel -or $Force.IsPresent) {
-                $image = [Spectre.Console.SixelImage]::new($imagePathResolved)
-            } else {
+                $image = [PwshSpectreConsole.SixelImage]::new($imagePathResolved)
+            }
+            else {
                 throw 'Sixel format is not supported in this terminal.'
             }
-        } elseif ($Format -eq 'Canvas') {
-            $image = [Spectre.Console.CanvasImage]::new($imagePathResolved)
         }
+        # elseif ($Format -eq 'Canvas') {
+        #     $image = [Spectre.Console.CanvasImage]::new($imagePathResolved)
+        # }
 
         if ($MaxWidth) {
             $image.MaxWidth = $MaxWidth

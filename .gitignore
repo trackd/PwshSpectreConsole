@@ -35,3 +35,5 @@ obj/
 
 # Test results
 testResults.xml
+.github/
+PwshSpectreConsole/lib/*

@@ -1,7 +1,13 @@
-Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
-Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
-
+BeforeAll {
+    if (-Not (Get-Module PwshSpectreConsole)) {
+        $ModulePath = Join-Path $PSScriptRoot ".." ".." "PwshSpectreConsole" "PwshSpectreConsole.psd1"
+        Import-Module $ModulePath
+    }
+    if (-Not (Get-Module TestHelpers)) {
+        $TestHelpersPath = Join-Path $PSScriptRoot ".." "TestHelpers.psm1"
+        Import-Module $TestHelpersPath
+    }
+}
 Describe "Format-SpectreGrid" {
     InModuleScope "PwshSpectreConsole" {
 
@@ -17,7 +23,7 @@ Describe "Format-SpectreGrid" {
         It "Should format data in a grid" {
             $rows = 4
             $cols = 6
-            
+
             $gridRows = @()
             for ($row = 1; $row -le $rows; $row++) {
                 $columns = @()
@@ -26,7 +32,7 @@ Describe "Format-SpectreGrid" {
                 }
                 $gridRows += New-SpectreGridRow $columns
             }
-            
+
             $renderable = $gridRows | Format-SpectreGrid
             $renderable | Should -BeOfType [Spectre.Console.Grid]
             $renderable | Out-SpectreHost

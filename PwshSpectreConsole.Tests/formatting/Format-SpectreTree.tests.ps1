@@ -1,6 +1,13 @@
-Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
-Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
+BeforeAll {
+    if (-Not (Get-Module PwshSpectreConsole)) {
+        $ModulePath = Join-Path $PSScriptRoot ".." ".." "PwshSpectreConsole" "PwshSpectreConsole.psd1"
+        Import-Module $ModulePath
+    }
+    if (-Not (Get-Module TestHelpers)) {
+        $TestHelpersPath = Join-Path $PSScriptRoot ".." "TestHelpers.psm1"
+        Import-Module $TestHelpersPath
+    }
+}
 
 Describe "Format-SpectreTree" {
     InModuleScope "PwshSpectreConsole" {
@@ -10,7 +17,7 @@ Describe "Format-SpectreTree" {
             [Spectre.Console.Testing.TestConsoleExtensions]::Width($testConsole, 140)
             $testGuide = Get-RandomTreeGuide
             $testColor = Get-RandomColor
-            
+
             Mock Write-AnsiConsole {
                 $RenderableObject | Should -BeOfType [Spectre.Console.Tree]
                 $RenderableObject.Style.Foreground.ToMarkup() | Should -Be $testColor

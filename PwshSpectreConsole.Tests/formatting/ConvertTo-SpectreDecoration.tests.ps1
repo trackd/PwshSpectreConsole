@@ -1,14 +1,21 @@
-Remove-Module PwshSpectreConsole -Force -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot\..\..\PwshSpectreConsole\PwshSpectreConsole.psd1" -Force
-Import-Module "$PSScriptRoot\..\TestHelpers.psm1" -Force
-
+BeforeAll {
+    if (-Not (Get-Module PwshSpectreConsole)) {
+        $ModulePath = Join-Path $PSScriptRoot ".." ".." "PwshSpectreConsole" "PwshSpectreConsole.psd1"
+        Import-Module $ModulePath
+    }
+    if (-Not (Get-Module TestHelpers)) {
+        $TestHelpersPath = Join-Path $PSScriptRoot ".." "TestHelpers.psm1"
+        Import-Module $TestHelpersPath
+    }
+    [Spectre.Console.AnsiConsole]::Profile.Capabilities.ColorSystem = 'Standard'
+}
 Describe "ConvertTo-SpectreDecoration" {
     InModuleScope "PwshSpectreConsole" {
         It "Test PSStyle Decorations" {
             $PSStyleColor = Get-PSStyleRandom -Decoration
             $string = 'Hello, world!, hello universe!'
             $sample = "{0}{1}{2}" -f $PSStyleColor, $string, $PSStyle.Reset
-            $test = Get-SpectreRenderable (ConvertTo-SpectreDecoration $sample)
+            $test = Get-SpectreRenderable ([PwshSpectreConsole.VTParser]::ToParagraph($sample))
             $test | Should -Be $sample
         }
         It "Test PSStyle Foreground RGB Colors" -Tag "ExcludeCI" {
@@ -16,21 +23,21 @@ Describe "ConvertTo-SpectreDecoration" {
             $PSStyleColor = Get-PSStyleRandom -RGBForeground
             $string = 'Hello, world!, hello universe!'
             $sample = "{0}{1}{2}" -f $PSStyleColor, $string, $PSStyle.Reset
-            $test = Get-SpectreRenderable (ConvertTo-SpectreDecoration $sample)
+            $test = Get-SpectreRenderable ([PwshSpectreConsole.VTParser]::ToParagraph($sample))
             $test | Should -Be $sample
         }
         It "Test PSStyle Background RGB Colors" -Tag "ExcludeCI" {
             $PSStyleColor = Get-PSStyleRandom -RGBBackground
             $string = 'Hello, world!, hello universe!'
             $sample = "{0}{1}{2}" -f $PSStyleColor, $string, $PSStyle.Reset
-            $test = Get-SpectreRenderable (ConvertTo-SpectreDecoration $sample)
+            $test = Get-SpectreRenderable ([PwshSpectreConsole.VTParser]::ToParagraph($sample))
             $test | Should -Be $sample
         }
         It "Test Spectre Colors" {
             # this might work because the colors are generated from CI so shouldnt get us codes we cant render.
             $sample = Get-SpectreColorSample
             foreach ($item in $sample) {
-                $test = Get-SpectreRenderable (ConvertTo-SpectreDecoration $item.String)
+                $test = Get-SpectreRenderable ([PwshSpectreConsole.VTParser]::ToParagraph($item.String))
                 $test | Should -Be $item.String
             }
         }
