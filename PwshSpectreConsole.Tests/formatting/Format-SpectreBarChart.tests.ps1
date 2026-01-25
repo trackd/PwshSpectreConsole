@@ -1,14 +1,19 @@
 BeforeAll {
     if (-Not (Get-Module PwshSpectreConsole)) {
-        $ModulePath = Join-Path $PSScriptRoot ".." ".." "PwshSpectreConsole" "PwshSpectreConsole.psd1"
-        Import-Module $ModulePath
+        if ($env:RunMergedPsm1Tests) {
+            $ModulePath = Resolve-Path (Join-Path $PSScriptRoot '..' '..' 'output' 'PwshSpectreConsole.psd1')
+        }
+        else {
+            $ModulePath = Resolve-Path (Join-Path $PSScriptRoot '..' '..' 'PwshSpectreConsole' 'PwshSpectreConsole.psd1')
+        }
+        Write-Host "Importing PwshSpectreConsole module from $ModulePath"
+        Import-Module $ModulePath -ErrorAction Stop
     }
     if (-Not (Get-Module TestHelpers)) {
-        $TestHelpersPath = Join-Path $PSScriptRoot ".." "TestHelpers.psm1"
-        Import-Module $TestHelpersPath
+        $TestHelpersPath = Resolve-Path (Join-Path $PSScriptRoot '..' 'TestHelpers.psm1')
+        Import-Module $TestHelpersPath -ErrorAction Stop
     }
 }
-
 Describe "Format-SpectreBarChart" {
     InModuleScope "PwshSpectreConsole" {
 

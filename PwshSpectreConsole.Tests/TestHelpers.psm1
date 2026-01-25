@@ -220,8 +220,8 @@ Function Get-SpectreColorSample {
         [PSCustomObject]@{
             Color  = $c
             String = $SpectreString
-            # Object = $color
-            # Debug = Get-AnsiEscapeSequence $SpectreString
+            Object = $color
+            Debug = Get-AnsiEscapeSequence $SpectreString
         }
     }
 }
