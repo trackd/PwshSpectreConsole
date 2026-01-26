@@ -57,9 +57,9 @@ function Get-SpectreImage {
         [Parameter(ValueFromPipelineByPropertyName)]
         [Alias('Width')]
         [int] $MaxWidth,
-        [ValidateSet('Auto', 'Sixel', 'Canvas')]
-        [string] $Format = 'Auto',
-        [switch] $Force
+        [ImageTypes] $Format = 'Auto',
+        [switch] $Force,
+        [switch] $Animation
     )
     process {
         if ($ImagePath.StartsWith('http://') -or $ImagePath.StartsWith('https://')) {
@@ -80,22 +80,23 @@ function Get-SpectreImage {
         $image = $null
         if ($Format -eq 'Auto') {
             if ($script:TerminalSupportsSixel -or $Force.IsPresent) {
-                $image = [PwshSpectreConsole.SixelImage]::new($imagePathResolved)
-            }
-            # else {
-            #     $image = [Spectre.Console.CanvasImage]::new($imagePathResolved)
-            # }
-        } elseif ($Format -eq 'Sixel') {
-            if ($script:TerminalSupportsSixel -or $Force.IsPresent) {
-                $image = [PwshSpectreConsole.SixelImage]::new($imagePathResolved)
+                $image = [PwshSpectreConsole.ConvertImage]::new($imagePathResolved, !$Animation, $Format)
             }
             else {
-                throw 'Sixel format is not supported in this terminal.'
+                $image = [PwshSpectreConsole.ConvertImage]::new($imagePathResolved, !$Animation, 'Blocks')
             }
         }
-        # elseif ($Format -eq 'Canvas') {
-        #     $image = [Spectre.Console.CanvasImage]::new($imagePathResolved)
-        # }
+        elseif ($Format -eq 'Sixel') {
+            if ($script:TerminalSupportsSixel -or $Force.IsPresent) {
+                $image = [PwshSpectreConsole.ConvertImage]::new($imagePathResolved, !$Animation, $Format)
+            }
+            else {
+                throw 'Sixel format is not supported in this terminal, use -Force to override.'
+            }
+        }
+        elseif ($Format -eq 'Blocks') {
+            $image = [PwshSpectreConsole.ConvertImage]::new($imagePathResolved, !$Animation, $Format)
+        }
 
         if ($MaxWidth) {
             $image.MaxWidth = $MaxWidth

@@ -22,7 +22,7 @@ public static class SixelParser {
     /// <param name="cellWidth">The width of the cell in terminal cells.</param>
     /// <param name="disableAnimation">Whether to disable animation for the image and only load the first frame.</param>
     /// <returns>The Sixel object.</returns>
-    public static Sixel ImageToSixel(Image<Rgba32> image, int cellWidth, bool disableAnimation = false) {
+    public static ConsoleImage ImageToSixel(Image<Rgba32> image, int cellWidth, bool disableAnimation = false) {
         // We're going to resize the image when it's rendered, so use a copy to leave the original untouched.
         Image<Rgba32> imageClone = image.Clone();
 
@@ -61,7 +61,7 @@ public static class SixelParser {
             }
         }
 
-        return new Sixel(
+        return new ConsoleImage(
             pixelWidth,
             pixelHeight,
             cellHeight,
@@ -203,19 +203,22 @@ public static class SixelParser {
     /// Writes the Sixel carriage return sequence to the string builder.
     /// </summary>
     /// <param name="sixelBuilder">The string builder to write to.</param>
-    private static void AppendCarriageReturn(this StringBuilder sixelBuilder) => sixelBuilder.Append(Constants.SIXELDECGCR);
+    private static void AppendCarriageReturn(this StringBuilder sixelBuilder)
+        => sixelBuilder.Append(Constants.SIXELDECGCR);
 
     /// <summary>
     /// Writes the Sixel next line sequence to the string builder.
     /// </summary>
     /// <param name="sixelBuilder">The string builder to write to.</param>
-    private static void AppendNextLine(this StringBuilder sixelBuilder) => sixelBuilder.Append(Constants.SIXELDECGNL);
+    private static void AppendNextLine(this StringBuilder sixelBuilder)
+        => sixelBuilder.Append(Constants.SIXELDECGNL);
 
     /// <summary>
     /// Writes the Sixel exit sequence to the string builder.
     /// </summary>
     /// <param name="sixelBuilder">The string builder to write to.</param>
-    private static void AppendExitSixel(this StringBuilder sixelBuilder) => sixelBuilder.Append(Constants.SIXELEND);
+    private static void AppendExitSixel(this StringBuilder sixelBuilder)
+        => sixelBuilder.Append(Constants.SIXELEND);
 
     /// <summary>
     /// Writes the Sixel start sequence to the string builder.

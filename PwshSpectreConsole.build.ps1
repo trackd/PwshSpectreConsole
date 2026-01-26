@@ -194,5 +194,6 @@ task CleanAfter {
         Get-Childitem $script:config.DestinationPath -File | Where-Object { $_.Extension -in '.pdb', '.json' } | Remove-Item -Force -ErrorAction Ignore
     }
 }
+
 task All -Jobs Clean, Build, ModuleFiles, CleanAfter, Test
 task TestMerge -Jobs Test

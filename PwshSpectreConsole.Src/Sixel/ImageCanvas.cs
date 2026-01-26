@@ -8,7 +8,7 @@ namespace PwshSpectreConsole;
 /// <summary>
 /// Represents a renderable canvas.
 /// </summary>
-public sealed class SixelCanvas : Renderable {
+public sealed class ImageCanvas : Renderable {
     private readonly Color?[,] _pixels;
 
     /// <summary>
@@ -42,7 +42,7 @@ public sealed class SixelCanvas : Renderable {
     /// </summary>
     /// <param name="width">The canvas width.</param>
     /// <param name="height">The canvas height.</param>
-    public SixelCanvas(int width, int height) {
+    public ImageCanvas(int width, int height) {
         if (width < 1) {
             throw new ArgumentException("Must be > 1", nameof(width));
         }
@@ -64,7 +64,7 @@ public sealed class SixelCanvas : Renderable {
     /// <param name="y">The Y coordinate for the pixel.</param>
     /// <param name="color">The pixel color.</param>
     /// <returns>The same <see cref="Canvas"/> instance so that multiple calls can be chained.</returns>
-    public SixelCanvas SetPixel(int x, int y, Color color) {
+    public ImageCanvas SetPixel(int x, int y, Color color) {
         _pixels[x, y] = color;
         return this;
     }
@@ -116,7 +116,7 @@ public sealed class SixelCanvas : Renderable {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 Color? color = pixels[x, y];
-                yield return color != null ? SixelSegment.Create(pixel, new Style(background: color)) : SixelSegment.Transparent(PixelWidth);
+                yield return color != null ? ImageSegment.Create(pixel, new Style(background: color)) : ImageSegment.Transparent(PixelWidth);
             }
 
             yield return Segment.LineBreak;

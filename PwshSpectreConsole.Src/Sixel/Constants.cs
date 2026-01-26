@@ -3,11 +3,11 @@ namespace PwshSpectreConsole;
 /// <summary>
 /// Sixel terminal compatibility helpers.
 /// </summary>
-public static class Constants {
+internal static class Constants {
     /// <summary>
     /// The character to use when entering a terminal escape code sequence.
     /// </summary>
-    public const string ESC = "\u001b";
+    public const char ESC = '\u001b';
 
     /// <summary>
     /// The character to indicate the start of a sixel color palette entry or to switch to a new color.
@@ -44,7 +44,7 @@ public static class Constants {
     /// The start of a sixel sequence.
     /// https://vt100.net/docs/vt3xx-gp/chapter14.html#S14.2.1.
     /// </summary>
-    public const string SIXELSTART = $"{ESC}P0;1q";
+    public static readonly string SIXELSTART = $"{ESC}P0;1q";
 
     /// <summary>
     /// The raster settings for setting the sixel pixel ratio to 1:1 so images are square when rendered instead of the 2:1 double height default.
@@ -55,10 +55,42 @@ public static class Constants {
     /// <summary>
     /// The end of a sixel sequence.
     /// </summary>
-    public const string SIXELEND = $"{ESC}\\";
+    public static readonly string SIXELEND = $"{ESC}\\";
 
     /// <summary>
     /// The transparent color for the sixel, this is black but the sixel should be transparent so this is not visible.
     /// </summary>
     public const string SIXELTRANSPARENTCOLOR = "#0;2;0;0;0";
+
+    /// <summary>
+    /// vt reset
+    /// </summary>
+    public static readonly string Reset = $"{ESC}[0m";
+
+    /// <summary>
+    /// lower half block character
+    /// ▄
+    /// this allows you to color the top and bottom of a cell.
+    /// foreground colors the lower block and background colors the space above the block in the same cell.
+    /// </summary>
+    public const char LowerHalfBlock = '\u2584';
+    /// <summary>
+    /// upper half block character
+    /// ▀
+    /// this allows you to color the top and bottom of a cell.
+    /// foreground colors the upper block and background colors the space below the block in the same cell.
+    /// </summary>
+
+    public const char UpperHalfBlock = '\u2580';
+    /// <summary>
+    /// background color escape sequence
+    /// </summary>
+    public static readonly string VTBG = "[48;2;";
+
+    /// <summary>
+    /// foreground color escape sequence
+    /// </summary>
+    public static readonly string VTFG = "[38;2;";
+    public static readonly string DECRQM2026 = "[?2026$p";
+    public static readonly string DA1 = "[c";
 }

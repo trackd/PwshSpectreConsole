@@ -8,7 +8,7 @@ namespace PwshSpectreConsole;
 /// <summary>
 /// Helper methods for creating and working with sixel-related segments.
 /// </summary>
-public static class SixelSegment {
+public static class ImageSegment {
     /// <summary>
     /// Gets a transparent segment.
     /// </summary>
