@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Globalization;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Spectre.Console.Rendering;
@@ -15,12 +17,11 @@ namespace PwshSpectreConsole;
 /// </remarks>
 /// <param name="filename">The image filename.</param>
 /// <param name="animationDisabled">Whether the image should have animation disabled.</param>
-public sealed class ConvertImage(string filename, bool animationDisabled = false, ImageTypes Imagetypes = ImageTypes.Sixel) : Renderable {
+public sealed class BlockImage(string filename, bool animationDisabled = false) : Renderable {
     /// <summary>
     /// Gets the image width in pixels.
     /// </summary>
     public int Width => Image.Width;
-
     /// <summary>
     /// Gets the image height in pixels.
     /// </summary>
@@ -30,6 +31,11 @@ public sealed class ConvertImage(string filename, bool animationDisabled = false
     /// Gets or sets the render width of the canvas in terminal cells.
     /// </summary>
     public int? MaxWidth { get; set; }
+
+    /// <summary>
+    /// Gets or sets the render mode for block rendering (HalfBlocks, BlockElements, Braille).
+    /// </summary>
+    public RenderMode Mode { get; set; } = RenderMode.HalfBlocks;
 
     /// <summary>
     /// Gets the render width of the canvas. This is hard coded to 1 for sixel images.
@@ -60,33 +66,49 @@ public sealed class ConvertImage(string filename, bool animationDisabled = false
     }
 
     internal Image<Rgba32> Image { get; } = SixLabors.ImageSharp.Image.Load<Rgba32>(filename);
-    private readonly Dictionary<int, ConsoleImage> _cachedSixels = [];
+    private readonly Dictionary<(int Width, RenderMode Mode), ConsoleImage> _cachedBlocks = [];
     private int _frameToRender;
 
     /// <inheritdoc/>
     protected override Measurement Measure(RenderOptions options, int maxWidth) {
-        if (PixelWidth < 0) {
-            throw new InvalidOperationException("Pixel width must be greater than zero.");
+        // Measure in terminal character cells, not raw pixels. Use SizeHelper
+        // to convert the image pixel dimensions to character cell dimensions.
+        (int naturalWidthCells, int naturalHeightCells) = SizeHelper.GetCharacterCellSize(Image, ImageTypes.Blocks);
+
+        int targetWidthCells = MaxWidth ?? naturalWidthCells;
+
+        if (Environment.GetEnvironmentVariable("PWSSPECTRE_DEBUG_SIZING") == "1") {
+            Console.Error.WriteLine($"[PWSSPECTRE_DEBUG_SIZING] BlockImage.Measure called: maxWidthArg={maxWidth} MaxWidthProp={(MaxWidth?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "null")} natural=({naturalWidthCells},{naturalHeightCells}) targetWidthCells={targetWidthCells}");
         }
 
-        int width = MaxWidth ?? Width;
-        return maxWidth < width * PixelWidth ? new Measurement(maxWidth, maxWidth) : new Measurement(width * PixelWidth, width * PixelWidth);
+        // If the available maxWidth is smaller than our target, report that as both min and max.
+        var measurement = maxWidth < targetWidthCells ? new Measurement(maxWidth, maxWidth) : new Measurement(targetWidthCells, targetWidthCells);
+
+        if (Environment.GetEnvironmentVariable("PWSSPECTRE_DEBUG_SIZING") == "1") {
+            Console.Error.WriteLine($"[PWSSPECTRE_DEBUG_SIZING] BlockImage.Measure returning: min={measurement.Min} max={measurement.Max}");
+        }
+
+        return measurement;
     }
 
     /// <inheritdoc/>
     protected override IEnumerable<Segment> Render(RenderOptions options, int maxWidth) {
-        // Got a max width smaller than the render max width?
         if (MaxWidth != null && MaxWidth < maxWidth) {
+            // Got a max width smaller than the render max width?
             maxWidth = MaxWidth.Value;
+        }
+        if (maxWidth > Console.WindowWidth) {
+            // got a max width larger than the console window? resize
+            // make some room for spectre renderables that it's probably wrapped in.
+            maxWidth = Console.WindowWidth - 10;
         }
 
         // Write the sixel data as a control segment.
         // Parsing is expensive, cache the result for the current width.
-        if (!_cachedSixels.TryGetValue(maxWidth, out ConsoleImage consoleImage)) {
-            consoleImage = Imagetypes == ImageTypes.Blocks
-                ? Blocks.ImageToBlocks(Image, maxWidth, AnimationDisabled)
-                : SixelParser.ImageToSixel(Image, maxWidth, AnimationDisabled);
-            _cachedSixels.Add(maxWidth, consoleImage);
+        var cacheKey = (maxWidth, Mode);
+        if (!_cachedBlocks.TryGetValue(cacheKey, out ConsoleImage consoleImage)) {
+            consoleImage = Blocks.ImageToBlocks(Image, maxWidth, AnimationDisabled, Mode);
+            _cachedBlocks.Add(cacheKey, consoleImage);
         }
 
         // Draw a transparent renderable to take up the space the sixel is drawn in.
@@ -108,20 +130,20 @@ public sealed class ConvertImage(string filename, bool animationDisabled = false
             segments.RemoveAt(segments.Count - 1);
         }
 
-        // After rendering the canvas, send the cursor to the top left of the canvas to render the sixel data.
+        // Build control sequences for sixel rendering so we can debug or reuse them easily.
+        // Conservative offsets: move up by CellHeight-1 to reach the top of the canvas
+        // and restore by moving down a single line then moving right to the canvas end.
         segments.Add(Segment.Control($"{Constants.ESC}[{consoleImage.CellHeight - 1}A{Constants.ESC}[{consoleImage.CellWidth}D"));
-
-        // Render the sixel data.
-        segments.Add(Segment.Control(consoleImage.SixelStrings[FrameToRender]));
-
-        // Reposition the cursor to the bottom right of the canvas after the sixel rendering leaves it at the bottom left.
+        segments.Add(Segment.Control(consoleImage.BlockStrings[FrameToRender]));
+        // Restore cursor: move up a single line (balances the sixel output) then move right to canvas end
         segments.Add(Segment.Control($"{Constants.ESC}[1A{Constants.ESC}[{consoleImage.CellWidth}C"));
 
+        // Move cursor up to the top-left of the canvas, render sixel, then restore cursor to bottom-right.
         // Add the line break stolen from the canvas.
         segments.Add(Segment.LineBreak);
 
         // Update animation frame.
-        FrameToRender = (FrameToRender + 1) % consoleImage.SixelStrings.Length;
+        FrameToRender = (FrameToRender + 1) % consoleImage.BlockStrings.Length;
 
         return segments;
     }

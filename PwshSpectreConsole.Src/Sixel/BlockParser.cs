@@ -1,109 +1,226 @@
-﻿using System.Text;
+using System;
+using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Quantization;
-// using Color = SixLabors.ImageSharp.Color;
+using Color = SixLabors.ImageSharp.Color;
 
 namespace PwshSpectreConsole;
 
+public enum RenderMode {
+    HalfBlocks = 0,
+    BlockElements = 1,
+    Braille = 2,
+}
+
 public static class Blocks {
-    public static ConsoleImage ImageToBlocks(Image<Rgba32> image, int cellWidth, bool disableAnimation = false) {
+    public static ConsoleImage ImageToBlocks(Image<Rgba32> image, int cellWidth, bool disableAnimation = false, RenderMode mode = RenderMode.HalfBlocks) {
         // We're going to resize the image when it's rendered, so use a copy to leave the original untouched.
         Image<Rgba32> imageClone = image.Clone();
 
-        // Convert to pixel sizes.
-        int pixelWidth = cellWidth * Compatibility.GetCellSize().PixelWidth;
-        int pixelHeight = (int)Math.Round((double)imageClone.Height / imageClone.Width * pixelWidth);
+        // Determine resized target in character cells, then convert to pixel sizes.
+        (int targetCellWidth, int targetCellHeight) = SizeHelper.GetResizedCharacterCellSize(imageClone.Width, imageClone.Height, cellWidth, 0, ImageTypes.Blocks);
+        int cellPixelWidth = Compatibility.GetCellSize().PixelWidth;
+        int cellPixelHeight = Compatibility.GetCellSize().PixelHeight;
 
+        // Preserve aspect ratio in image pixels: scale width to targetCellWidth*cellPixelWidth
+        int scaledPixelW = targetCellWidth * cellPixelWidth;
+        int scaledPixelH = Math.Max(1, (int)Math.Round((double)imageClone.Height / imageClone.Width * scaledPixelW));
+
+        // Number of terminal character rows needed to display scaledPixelH
+        int cellHeight = Math.Max(1, (int)Math.Ceiling((double)scaledPixelH / cellPixelHeight));
+
+        // Resize image to the scaled pixel dimensions (preserve aspect ratio)
         imageClone.Mutate(ctx => {
-            // Resize the image to the target size
             ctx.Resize(new ResizeOptions() {
-                Sampler = KnownResamplers.Bicubic,
-                Mode = ResizeMode.BoxPad,
-                Position = AnchorPositionMode.TopLeft,
-                PadColor = Color.Transparent,
-                // * 2 because each cell is 2 pixels high for blocks
-                Size = new Size(pixelWidth, pixelHeight * 2),
+                Size = new Size(scaledPixelW, scaledPixelH),
                 PremultiplyAlpha = false,
+                Mode = ResizeMode.BoxPad,
+                Position = AnchorPositionMode.Center,
+                PadColor = Color.Transparent,
+                Sampler = KnownResamplers.Bicubic,
             });
 
-            // Sixel supports 256 colors max
-            ctx.Quantize(new OctreeQuantizer(new() {
-                MaxColors = 256,
-            }));
+            // Quantize colours for terminal-friendly output
+            ctx.Quantize(new OctreeQuantizer(new() { MaxColors = 256 }));
         });
-        ImageFrame<Rgba32> firstFrame = imageClone.Frames[0];
-        int cellPixelHeight = Compatibility.GetCellSize().PixelHeight;
-        int cellHeight = (int)Math.Ceiling((double)pixelHeight / cellPixelHeight);
         var blockStrings = new List<string>();
 
         for (int i = 0; i < imageClone.Frames.Count; i++) {
-            blockStrings.Add(ProcessFrame(imageClone.Frames[i]));
+            blockStrings.Add(ProcessFrame(imageClone.Frames[i], cellPixelWidth, cellHeight, mode));
             if (disableAnimation) {
                 break;
             }
         }
 
         return new ConsoleImage(
-            pixelWidth,
-            pixelHeight,
+            scaledPixelW,
+            scaledPixelH,
             cellHeight,
-            cellWidth,
+            targetCellWidth,
             [.. blockStrings]);
     }
+    internal static string ProcessFrame(ImageFrame<Rgba32> frame, int cellPixelWidth, int cellRows, RenderMode mode) {
+        return mode switch {
+            RenderMode.Braille => ProcessFrameBraille(frame, cellPixelWidth, cellRows),
+            RenderMode.BlockElements => ProcessFrameBlockElements(frame, cellPixelWidth, cellRows),
+            RenderMode.HalfBlocks => ProcessFrameHalfBlocks(frame, cellPixelWidth, cellRows),
+            _ => ProcessFrameHalfBlocks(frame, cellPixelWidth, cellRows),
+        };
+    }
 
-    internal static string ProcessFrame(ImageFrame<Rgba32> frame) {
+    private static string ProcessFrameHalfBlocks(ImageFrame<Rgba32> frame, int cellPixelWidth, int cellRows) {
         var _buffer = new StringBuilder();
-        Rgba32 _backgroundColor = GetConsoleBackgroundColor();
-        // Rgba32 _backgroundColor = Color.Transparent.ToPixel<Rgba32>();
+        int width = frame.Width;
+        int height = frame.Height;
 
-        for (int y = 0; y < frame.Height; y += 2) {
-            if (y + 1 >= frame.Height) {
-                _buffer.AppendLine();
-                break;
+        for (int row = 0; row < cellRows; row++) {
+            int yTop = Math.Clamp((int)Math.Round((row + 0.25) * height / cellRows), 0, height - 1);
+            int yBottom = Math.Clamp((int)Math.Round((row + 0.75) * height / cellRows), 0, height - 1);
+
+            for (int xCell = 0; xCell < width; xCell += cellPixelWidth) {
+                int sampleX = xCell + (cellPixelWidth / 2);
+                if (sampleX >= width) sampleX = width - 1;
+
+                Rgba32 topPixel = frame[sampleX, yTop];
+                Rgba32 bottomPixel = frame[sampleX, yBottom];
+
+                _buffer.ProcessPixelPairs(topPixel, bottomPixel);
             }
 
-            for (int x = 0; x < frame.Width; x++) {
-                Rgba32 topPixel = frame[x, y];
-                Rgba32 bottomPixel = frame[x, y + 1];
-
-                _buffer.ProcessPixelPairs(topPixel, bottomPixel, _backgroundColor);
-            }
             _buffer.AppendLine();
         }
+
         return _buffer.ToString();
     }
-    private static void ProcessPixelPairs(this StringBuilder _buffer, Rgba32 top, Rgba32 bottom, Rgba32 _backgroundColor) {
+
+    private static string ProcessFrameBlockElements(ImageFrame<Rgba32> frame, int cellPixelWidth, int cellRows) {
+        var _buffer = new StringBuilder();
+        int width = frame.Width;
+        int height = frame.Height;
+
+        for (int row = 0; row < cellRows; row++) {
+            int yTop = Math.Clamp((int)Math.Round((row + 0.25) * height / cellRows), 0, height - 1);
+            int yBottom = Math.Clamp((int)Math.Round((row + 0.75) * height / cellRows), 0, height - 1);
+
+            for (int xCell = 0; xCell < width; xCell += cellPixelWidth) {
+                int sampleX = xCell + (cellPixelWidth / 2);
+                if (sampleX >= width) sampleX = width - 1;
+
+                // sample left/right inside the cell
+                int leftX = Math.Clamp(xCell + (cellPixelWidth / 4), 0, width - 1);
+                int rightX = Math.Clamp(xCell + (3 * cellPixelWidth / 4), 0, width - 1);
+
+                Rgba32 leftTop = frame[leftX, yTop];
+                Rgba32 leftBottom = frame[leftX, yBottom];
+                Rgba32 rightTop = frame[rightX, yTop];
+                Rgba32 rightBottom = frame[rightX, yBottom];
+
+                bool leftOn = !IsTransparent(leftTop) || !IsTransparent(leftBottom);
+                bool rightOn = !IsTransparent(rightTop) || !IsTransparent(rightBottom);
+
+                if (leftOn && rightOn) {
+                    (byte lR, byte lG, byte lB) = CompositeOver(leftTop, leftBottom);
+                    (byte rR, byte rG, byte rB) = CompositeOver(rightTop, rightBottom);
+                    _buffer.Append(Constants.ESC).Append(Constants.VTFG).Append(lR).Append(';').Append(lG).Append(';').Append(lB).Append(';');
+                    _buffer.Append(48).Append(';').Append(2).Append(';').Append(rR).Append(';').Append(rG).Append(';').Append(rB).Append('m');
+                    _buffer.Append(Constants.LeftHalfBlock);
+                    _buffer.Append(Constants.Reset);
+                    continue;
+                }
+
+                // Fallback to half-block sampling using center X
+                Rgba32 topPixel = frame[sampleX, yTop];
+                Rgba32 bottomPixel = frame[sampleX, yBottom];
+                _buffer.ProcessPixelPairs(topPixel, bottomPixel);
+            }
+
+            _buffer.AppendLine();
+        }
+
+        return _buffer.ToString();
+    }
+
+    private static string ProcessFrameBraille(ImageFrame<Rgba32> frame, int cellPixelWidth, int cellRows) {
+        var _buffer = new StringBuilder();
+        int width = frame.Width;
+        int height = frame.Height;
+
+        for (int row = 0; row < cellRows; row++) {
+            for (int xCell = 0; xCell < width; xCell += cellPixelWidth) {
+                int baseX = xCell;
+                int dotBits = 0;
+                int sampleCount = 0;
+                int rSum = 0, gSum = 0, bSum = 0;
+
+                for (int dx = 0; dx < 2; dx++) {
+                    int sampleX = Math.Clamp(baseX + (int)Math.Round((dx + 0.5) / 2.0 * cellPixelWidth), 0, width - 1);
+                    for (int dy = 0; dy < 4; dy++) {
+                        int sampleY = Math.Clamp((int)Math.Round((row + (dy + 0.5) / 4.0) * height / cellRows), 0, height - 1);
+                        Rgba32 px = frame[sampleX, sampleY];
+                        bool on = !IsTransparent(px);
+                        if (on) {
+                            int dotIndex = dx == 0 ? (dy == 0 ? 0 : dy == 1 ? 1 : dy == 2 ? 2 : 6) : (dy == 0 ? 3 : dy == 1 ? 4 : dy == 2 ? 5 : 7);
+                            dotBits |= 1 << dotIndex;
+                            rSum += px.R; gSum += px.G; bSum += px.B;
+                            sampleCount++;
+                        }
+                    }
+                }
+
+                if (dotBits == 0) {
+                    _buffer.Append(' ');
+                }
+                else {
+                    byte R = (byte)(rSum / Math.Max(1, sampleCount));
+                    byte G = (byte)(gSum / Math.Max(1, sampleCount));
+                    byte B = (byte)(bSum / Math.Max(1, sampleCount));
+                    int codepoint = 0x2800 + dotBits;
+                    _buffer.Append(Constants.ESC).Append(Constants.VTFG).Append(R).Append(';').Append(G).Append(';').Append(B).Append('m');
+                    _buffer.Append(char.ConvertFromUtf32(codepoint));
+                    _buffer.Append(Constants.Reset);
+                }
+            }
+
+            _buffer.AppendLine();
+        }
+
+        return _buffer.ToString();
+    }
+
+    private static void ProcessPixelPairs(this StringBuilder _buffer, Rgba32 top, Rgba32 bottom) {
         bool topTransparent = IsTransparent(top);
         bool bottomTransparent = IsTransparent(bottom);
 
         if (topTransparent && bottomTransparent) {
             _buffer.Append(' ');
+            return;
         }
-        else if (topTransparent) {
-            // (byte R, byte G, byte B) = BlendPixels(bottom, _backgroundColor);
-            // _buffer.AppendTopTransparent(R, G, B);
-            Rgba32 blend = BlendPixelsColor(bottom, _backgroundColor);
-            _buffer.AppendTopTransparent(blend.R, blend.G, blend.B);
+
+        if (topTransparent) {
+            (byte R, byte G, byte B) = CompositeOverBlack(bottom);
+            _buffer.AppendTopTransparent(R, G, B);
+            return;
         }
-        else if (bottomTransparent) {
-            // (byte R, byte G, byte B) = BlendPixels(top, _backgroundColor);
-            // _buffer.AppendBottomTransparent(R, G, B);
-            Rgba32 blend = BlendPixelsColor(top, _backgroundColor);
-            _buffer.AppendBottomTransparent(blend.R, blend.G, blend.B);
+
+        if (bottomTransparent) {
+            (byte R, byte G, byte B) = CompositeOverBlack(top);
+            _buffer.AppendBottomTransparent(R, G, B);
+            return;
         }
-        else {
-            // (byte R, byte G, byte B) = BlendPixels(top, _backgroundColor);
-            // (byte R, byte G, byte B) bottomRgb = BlendPixels(bottom, _backgroundColor);
-            // _buffer.AppendBlock(R, G, B, bottomRgb.R, bottomRgb.G, bottomRgb.B);
-            Rgba32 rtop = BlendPixelsColor(top, _backgroundColor);
-            Rgba32 rbot = BlendPixelsColor(bottom, _backgroundColor);
-            _buffer.AppendBlock(rtop.R, rtop.G, rtop.B, rbot.R, rbot.G, rbot.B);
-        }
+
+        // Both pixels present: composite the top pixel over the bottom pixel for the
+        // foreground (top) colour, and composite the bottom pixel over black for
+        // the background (bottom) colour. This gives a visually-correct result
+        // when either pixel has partial transparency.
+        (byte R, byte G, byte B) fg = CompositeOver(top, bottom);
+        (byte R, byte G, byte B) bg = CompositeOverBlack(bottom);
+        _buffer.AppendBlock(fg.R, fg.G, fg.B, bg.R, bg.G, bg.B);
     }
+
     private static void AppendTopTransparent(this StringBuilder Builder, byte r, byte g, byte b) {
-        // "`e[38;2;{r};{g};{b}m▄`e[0m"
+        // => "`e[38;2;{r};{g};{b}m▄`e[0m"
         Builder.
         Append(Constants.ESC).
         Append(Constants.VTFG).
@@ -114,7 +231,7 @@ public static class Blocks {
         Append(Constants.Reset);
     }
     private static void AppendBottomTransparent(this StringBuilder Builder, byte r, byte g, byte b) {
-        // "`e[38;2;{r};{g};{b}m▀`e[0m"
+        // => "`e[38;2;{r};{g};{b}m▀`e[0m"
         Builder.
         Append(Constants.ESC).
         Append(Constants.VTFG).
@@ -124,94 +241,56 @@ public static class Blocks {
         Append(Constants.UpperHalfBlock).
         Append(Constants.Reset);
     }
-    private static void AppendBlock(this StringBuilder Builder, byte tr, byte tg, byte tb, byte br, byte bg, byte bb) {
-        // "`e[38;2;{tr};{tg};{tb};48;2;{br};{bg};{bb}m▀`e[0m"
+    private static void AppendBlock(this StringBuilder Builder, byte TopR, byte TopG, byte TopB, byte BottomR, byte BottomG, byte BottomB) {
+        // =>  "`e[38;2;{TopR};{TopG};{TopB};48;2;{BottomR};{BottomG};{BottomB}m▀`e[0m"
         Builder.
         Append(Constants.ESC).
         Append(Constants.VTFG).
-        Append(tr).Append(';').
-        Append(tg).Append(';').
-        Append(tb).Append(Constants.VTBG).
-        Append(br).Append(';').
-        Append(bg).Append(';').
-        Append(bb).Append('m').
+        Append(TopR).Append(';').
+        Append(TopG).Append(';').
+        Append(TopB).Append(';').
+        Append(48).Append(';').
+        Append(2).Append(';').
+        Append(BottomR).Append(';').
+        Append(BottomG).Append(';').
+        Append(BottomB).Append('m').
         Append(Constants.UpperHalfBlock).
         Append(Constants.Reset);
     }
-    private static (byte R, byte G, byte B) BlendPixels(Rgba32 pixel, Rgba32 _backgroundColor) {
-        // If pixel is fully transparent, return the background color
-        if (IsTransparent(pixel)) {
-            return (_backgroundColor.R, _backgroundColor.G, _backgroundColor.B);
-        }
 
-        float amount = pixel.A / 255f;
-
-        byte r = (byte)((pixel.R * amount) + (_backgroundColor.R * (1 - amount)));
-        byte g = (byte)((pixel.G * amount) + (_backgroundColor.G * (1 - amount)));
-        byte b = (byte)((pixel.B * amount) + (_backgroundColor.B * (1 - amount)));
-
-        return (r, g, b);
+    private static (byte R, byte G, byte B) CompositeOverBlack(Rgba32 src) {
+        // If the source is considered transparent, emit (0,0,0) to indicate
+        // a transparent half. Otherwise emit the raw RGB bytes.
+        if (IsTransparent(src)) return (0, 0, 0);
+        return (src.R, src.G, src.B);
     }
-    private static Rgba32 BlendPixelsColor(Rgba32 pixel, Rgba32 _backgroundColor) {
-        // If pixel is fully transparent, return the background color
-        if (IsTransparent(pixel)) {
-            // return (_backgroundColor.R, _backgroundColor.G, _backgroundColor.B);
-            // return Color.Transparent;
-            return Color.Transparent.ToPixel<Rgba32>();
-        }
 
-        float amount = pixel.A / 255f;
+    private static (byte R, byte G, byte B) CompositeOver(Rgba32 src, Rgba32 dst) {
+        // Composite src over dst taking both alpha channels into account.
+        if (IsTransparent(src) && IsTransparent(dst)) return (0, 0, 0);
 
-        byte r = (byte)((pixel.R * amount) + (_backgroundColor.R * (1 - amount)));
-        byte g = (byte)((pixel.G * amount) + (_backgroundColor.G * (1 - amount)));
-        byte b = (byte)((pixel.B * amount) + (_backgroundColor.B * (1 - amount)));
+        float sa = src.A / 255f;
+        float da = dst.A / 255f;
 
-        return Color.FromRgb(r, g, b).ToPixel<Rgba32>();
+        // Resulting colour components (approximate, no premultiplied linear correction)
+        float r = (src.R * sa) + (dst.R * da * (1 - sa));
+        float g = (src.G * sa) + (dst.G * da * (1 - sa));
+        float b = (src.B * sa) + (dst.B * da * (1 - sa));
+
+        byte R = (byte)Math.Clamp((int)Math.Round(r), 0, 255);
+        byte G = (byte)Math.Clamp((int)Math.Round(g), 0, 255);
+        byte B = (byte)Math.Clamp((int)Math.Round(b), 0, 255);
+
+        return (R, G, B);
     }
     private static bool IsTransparent(Rgba32 pixel) {
         if (pixel.A == 0) return true;
 
-        // Calculate luminance for better edge artifact detection
         float luminance = ((0.299f * pixel.R) + (0.587f * pixel.G) + (0.114f * pixel.B)) / 255f;
 
-        // Consider pixels transparent if:
-        // 1. Alpha is very low (traditional transparency)
-        // 2. Alpha is low and pixel is very dark (common resizing artifacts)
-        // 3. Alpha is moderate and luminance is extremely low (aggressive edge artifact removal)
-        // 4. Alpha is low and color is close to pure black (black edge artifacts)
-        // 5. Very aggressive: moderately transparent with low luminance (catches most edge cases)
-        return pixel.A < 8 ||
-                (pixel.A < 32 && luminance < 0.15f) ||
-                (pixel.A < 64 && pixel.R < 12 && pixel.G < 12 && pixel.B < 12) ||
-                (pixel.A < 128 && luminance < 0.05f) ||
-                (pixel.A < 240 && luminance < 0.01f);
-    }
-    private static Rgba32 GetConsoleBackgroundColor() {
-        if (Console.IsOutputRedirected || Console.IsInputRedirected) {
-            return Color.Black.ToPixel<Rgba32>();
-        }
-        var bg = Spectre.Console.Color.FromConsoleColor(Console.BackgroundColor);
-        var color = Color.FromRgb(bg.R, bg.G, bg.B);
-        // Color color = Console.BackgroundColor switch {
-        //     ConsoleColor.Black => Color.FromRgb(0, 0, 0),
-        //     ConsoleColor.Blue => Color.FromRgb(0, 0, 170),
-        //     ConsoleColor.Cyan => Color.FromRgb(0, 170, 170),
-        //     ConsoleColor.DarkBlue => Color.FromRgb(0, 0, 85),
-        //     ConsoleColor.DarkCyan => Color.FromRgb(0, 85, 85),
-        //     ConsoleColor.DarkGray => Color.FromRgb(85, 85, 85),
-        //     ConsoleColor.DarkGreen => Color.FromRgb(0, 85, 0),
-        //     ConsoleColor.DarkMagenta => Color.FromRgb(85, 0, 85),
-        //     ConsoleColor.DarkRed => Color.FromRgb(85, 0, 0),
-        //     ConsoleColor.DarkYellow => Color.FromRgb(85, 85, 0),
-        //     ConsoleColor.Gray => Color.FromRgb(170, 170, 170),
-        //     ConsoleColor.Green => Color.FromRgb(0, 170, 0),
-        //     ConsoleColor.Magenta => Color.FromRgb(170, 0, 170),
-        //     ConsoleColor.Red => Color.FromRgb(170, 0, 0),
-        //     ConsoleColor.White => Color.FromRgb(255, 255, 255),
-        //     ConsoleColor.Yellow => Color.FromRgb(170, 170, 0),
-        //     _ => Color.Transparent,
-        // };
-        return color.ToPixel<Rgba32>();
+        return pixel.A < 8 || (pixel.A < 32 && luminance < 0.15f) ||
+            (pixel.A < 64 && pixel.R < 12 && pixel.G < 12 && pixel.B < 12) ||
+            (pixel.A < 128 && luminance < 0.05f) || (pixel.A < 240 && luminance < 0.01f);
     }
 
 }

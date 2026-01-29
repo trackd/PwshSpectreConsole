@@ -83,6 +83,26 @@ internal static class Constants {
 
     public const char UpperHalfBlock = '\u2580';
     /// <summary>
+    /// full block character █ (U+2588)
+    /// </summary>
+    public const char FullBlock = '\u2588';
+    /// <summary>
+    /// left half block ▌ (U+258C)
+    /// </summary>
+    public const char LeftHalfBlock = '\u258C';
+    /// <summary>
+    /// right half block ▐ (U+2590)
+    /// </summary>
+    public const char RightHalfBlock = '\u2590';
+    /// <summary>
+    /// braille blank (U+2800)
+    /// </summary>
+    public const char BrailleBlank = '\u2800';
+    /// <summary>
+    /// explicit space char for clarity
+    /// </summary>
+    public const char Space = ' ';
+    /// <summary>
     /// background color escape sequence
     /// </summary>
     public static readonly string VTBG = "[48;2;";

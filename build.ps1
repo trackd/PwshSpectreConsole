@@ -52,7 +52,7 @@ if (-not $env:CI) {
     $RunMergedPsm = @{
         Task = 'TestMerge'
     }
-    pwsh -NoProfile -Command $sb -args $RunMergedPsm
+    # pwsh -NoProfile -Command $sb -args $RunMergedPsm
 }
 else {
     # In CI environment, run directly

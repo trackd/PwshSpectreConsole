@@ -1,4 +1,4 @@
-namespace PwshSpectreConsole;
+﻿namespace PwshSpectreConsole;
 
 /// <summary>
 /// Represents the size of a cell in pixels for sixel rendering.
@@ -11,7 +11,7 @@ namespace PwshSpectreConsole;
 /// <param name="cellHeight">The height of a sixel image in terminal cells.</param>
 /// <param name="cellWidth">The width of a sixel image in terminal cells.</param>
 /// <param name="sixelStrings">The Sixel strings representing each frame of the image.</param>
-public readonly struct ConsoleImage(int pixelWidth, int pixelHeight, int cellHeight, int cellWidth, string[] blockStrings) {
+public readonly struct Sixel(int pixelWidth, int pixelHeight, int cellHeight, int cellWidth, string[] sixelStrings) {
     /// <summary>
     /// Gets the width of a sixel image in pixels.
     /// </summary>
@@ -36,5 +36,5 @@ public readonly struct ConsoleImage(int pixelWidth, int pixelHeight, int cellHei
     /// Gets the Sixel string.
     /// </summary>
     /// <returns>The Sixel string.</returns>
-    public string[] BlockStrings { get; init; } = blockStrings;
+    public string[] SixelStrings { get; init; } = sixelStrings;
 }

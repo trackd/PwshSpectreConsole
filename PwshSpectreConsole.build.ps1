@@ -182,7 +182,8 @@ task Test {
     }
     else {
         Write-Host "Running source module tests..." -ForegroundColor Yellow
-        Import-Module (Resolve-Path (Join-Path $script:config.ModuleSourcePath "$($script:config.moduleName).psd1"))
+        # Import-Module (Resolve-Path (Join-Path $script:config.ModuleSourcePath "$($script:config.moduleName).psd1"))
+        Import-Module (Resolve-Path (Join-Path $script:config.OutputPath "$($script:config.moduleName).psd1"))
     }
     Invoke-Pester -Configuration $pesterConfig @splat
     Remove-Item Env:RunMergedPsm1Tests -ErrorAction Ignore
@@ -196,4 +197,5 @@ task CleanAfter {
 }
 
 task All -Jobs Clean, Build, ModuleFiles, CleanAfter, Test
+task Repro -Jobs Clean, Build, ModuleFiles, CleanAfter
 task TestMerge -Jobs Test

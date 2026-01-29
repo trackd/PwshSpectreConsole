@@ -5,8 +5,8 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Quantization;
-using Spectre.Console;
-using Spectre.Console.Rendering;
+// using Spectre.Console;
+using Color = SixLabors.ImageSharp.Color;
 
 namespace PwshSpectreConsole;
 
@@ -22,7 +22,7 @@ public static class SixelParser {
     /// <param name="cellWidth">The width of the cell in terminal cells.</param>
     /// <param name="disableAnimation">Whether to disable animation for the image and only load the first frame.</param>
     /// <returns>The Sixel object.</returns>
-    public static ConsoleImage ImageToSixel(Image<Rgba32> image, int cellWidth, bool disableAnimation = false) {
+    public static Sixel ImageToSixel(Image<Rgba32> image, int cellWidth, bool disableAnimation = false) {
         // We're going to resize the image when it's rendered, so use a copy to leave the original untouched.
         Image<Rgba32> imageClone = image.Clone();
 
@@ -34,7 +34,7 @@ public static class SixelParser {
             // Resize the image to the target size
             ctx.Resize(new ResizeOptions() {
                 Sampler = KnownResamplers.Bicubic,
-                Size = new SixLabors.ImageSharp.Size(pixelWidth, pixelHeight),
+                Size = new Size(pixelWidth, pixelHeight),
                 PremultiplyAlpha = false,
             });
 
@@ -44,7 +44,6 @@ public static class SixelParser {
             }));
         });
 
-        ImageFrame<Rgba32> firstFrame = imageClone.Frames[0];
         int cellPixelHeight = Compatibility.GetCellSize().PixelHeight;
         int cellHeight = (int)Math.Ceiling((double)pixelHeight / cellPixelHeight);
         var sixelStrings = new List<string>();
@@ -61,12 +60,13 @@ public static class SixelParser {
             }
         }
 
-        return new ConsoleImage(
+        return new Sixel(
             pixelWidth,
             pixelHeight,
             cellHeight,
             cellWidth,
-            [.. sixelStrings]);
+            [.. sixelStrings]
+        );
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public static class SixelParser {
                     }
 
                     // Every time the color is not repeated the previous color is written to the string.
-                    sixelBuilder.AppendRepeatSixelEntry(lastColor, repeatCounter, c);
+                    sixelBuilder.AppendSixel(lastColor, repeatCounter, c);
 
                     // Remember the current color and reset the repeat counter.
                     lastColor = colorId;
@@ -121,7 +121,7 @@ public static class SixelParser {
                 }
 
                 // Write the last color and repeat counter to the string for the current row.
-                sixelBuilder.AppendRepeatSixelEntry(lastColor, repeatCounter, c);
+                sixelBuilder.AppendSixel(lastColor, repeatCounter, c);
 
                 // Add a carriage return at the end of each row and a new line every 6 pixel rows.
                 sixelBuilder.AppendCarriageReturn();
@@ -153,9 +153,12 @@ public static class SixelParser {
     /// <param name="pixel">The pixel to add to the palette.</param>
     /// <param name="colorIndex">The index of the color in the palette.</param>
     private static void AddColorToPalette(this StringBuilder sixelBuilder, Rgba32 pixel, int colorIndex) {
-        int r = (int)Math.Round(pixel.R / 255.0 * 100);
-        int g = (int)Math.Round(pixel.G / 255.0 * 100);
-        int b = (int)Math.Round(pixel.B / 255.0 * 100);
+        // rgb 0-255 needs to be translated to 0-100 for sixel.
+        (int r, int g, int b) = (
+            pixel.R * 100 / 255,
+            pixel.G * 100 / 255,
+            pixel.B * 100 / 255
+        );
 
         sixelBuilder.Append(Constants.SIXELCOLOR)
                     .Append(colorIndex)
@@ -174,29 +177,27 @@ public static class SixelParser {
     /// <param name="colorIndex">The index of the color in the palette.</param>
     /// <param name="repeatCounter">The number of times the color is repeated.</param>
     /// <param name="sixelDataCharacter">The sixel character to write.</param>
-    private static void AppendRepeatSixelEntry(this StringBuilder sixelBuilder, int colorIndex, int repeatCounter, char sixelDataCharacter) {
+    private static void AppendSixel(this StringBuilder sixelBuilder, int colorIndex, int repeatCounter, char sixel) {
+        if (colorIndex == 0) {
+            // Transparent pixels are a special case and are always 0 in the palette.
+            sixel = Constants.SIXELEMPTY;
+        }
         if (repeatCounter <= 1) {
-            sixelBuilder.AppendSixelEntry(colorIndex, sixelDataCharacter);
+            // single entry
+            sixelBuilder
+            .Append(Constants.SIXELCOLOR)
+            .Append(colorIndex)
+            .Append(sixel);
         }
         else {
-            sixelBuilder.Append(Constants.SIXELCOLOR)
-                    .Append(colorIndex)
-                    .Append(Constants.SIXELREPEAT)
-                    .Append(repeatCounter)
-                    .Append(colorIndex != 0 ? sixelDataCharacter : Constants.SIXELEMPTY);
+            // add repeats
+            sixelBuilder
+            .Append(Constants.SIXELCOLOR)
+            .Append(colorIndex)
+            .Append(Constants.SIXELREPEAT)
+            .Append(repeatCounter)
+            .Append(sixel);
         }
-    }
-
-    /// <summary>
-    /// Writes a sixel entry to the string builder.
-    /// </summary>
-    /// <param name="sixelBuilder">The string builder to write to.</param>
-    /// <param name="colorIndex">The index of the color in the palette.</param>
-    /// <param name="sixelDataCharacter">The sixel character to write.</param>
-    private static void AppendSixelEntry(this StringBuilder sixelBuilder, int colorIndex, char sixelDataCharacter) {
-        sixelBuilder.Append(Constants.SIXELCOLOR)
-                    .Append(colorIndex)
-                    .Append(colorIndex != 0 ? sixelDataCharacter : Constants.SIXELEMPTY);
     }
 
     /// <summary>
@@ -227,11 +228,12 @@ public static class SixelParser {
     /// <param name="width">The width of the image in pixels.</param>
     /// <param name="height">The height of the image in pixels.</param>
     private static void StartSixel(this StringBuilder sixelBuilder, int width, int height) {
-        sixelBuilder.Append(Constants.SIXELSTART)
-                    .Append(Constants.SIXELRASTERATTRIBUTES)
-                    .Append(width)
-                    .Append(';')
-                    .Append(height)
-                    .Append(Constants.SIXELTRANSPARENTCOLOR);
+        sixelBuilder
+        .Append(Constants.SIXELSTART)
+        .Append(Constants.SIXELRASTERATTRIBUTES)
+        .Append(width)
+        .Append(';')
+        .Append(height)
+        .Append(Constants.SIXELTRANSPARENTCOLOR);
     }
 }

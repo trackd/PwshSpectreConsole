@@ -6,7 +6,7 @@ param (
 )
 
 function Install-SpectreConsole {
-    param (
+    param(
         [string] $InstallLocation,
         [string] $CsharpProjectLocation
     )
@@ -32,8 +32,8 @@ function Install-SpectreConsole {
 }
 
 Write-Host "Downloading Spectre.Console"
-$installLocation = (Join-Path $PSScriptRoot "lib")
-$csharpProjectLocation = (Join-Path $PSScriptRoot ".." "PwshSpectreConsole.Src")
+$installLocation = Join-Path $PSScriptRoot 'lib'
+$csharpProjectLocation = Resolve-Path (Join-Path $PSScriptRoot ".." "PwshSpectreConsole.Src")
 
 if ((Test-Path $installLocation) -and $NoReinstall) {
     Write-Host "Spectre.Console already installed, skipping"

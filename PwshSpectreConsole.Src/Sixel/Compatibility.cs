@@ -118,7 +118,7 @@ public static class Compatibility {
                     if (int.TryParse(numberText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) {
                         // 0 = not recognized (not supported). 1..4 indicate supported states.
                         _terminalSupportsSynchronizedOutput = number != 0;
-                        Console.WriteLine($"Synchronized Output: received {number}");
+                        // Console.WriteLine($"Synchronized Output: received {number}");
                         return _terminalSupportsSynchronizedOutput.Value;
                     }
                 }
