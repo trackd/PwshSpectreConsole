@@ -1,11 +1,4 @@
-using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.Reflection.Metadata;
-using System.Threading;
-using System.Text;
-
-namespace PwshSpectreConsole;
+namespace PwshSpectreConsole.Terminal;
 
 /// <summary>
 /// Sixel terminal compatibility helpers.

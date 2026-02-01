@@ -1,4 +1,4 @@
-﻿namespace PwshSpectreConsole;
+﻿namespace PwshSpectreConsole.Models;
 
 /// <summary>
 /// Represents the size of a cell in pixels for sixel rendering.

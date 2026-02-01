@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using SixLabors.ImageSharp.PixelFormats;
-using Spectre.Console.Rendering;
-
-namespace PwshSpectreConsole;
+﻿namespace PwshSpectreConsole;
 
 /// <summary>
 /// Represents a renderable image.
@@ -14,7 +8,7 @@ namespace PwshSpectreConsole;
 /// </remarks>
 /// <param name="filename">The image filename.</param>
 /// <param name="animationDisabled">Whether the image should have animation disabled.</param>
-public sealed class SixelImage(string filename, bool animationDisabled = false) : Renderable {
+public sealed class PixelImage : Renderable {
     /// <summary>
     /// Gets the image width in pixels.
     /// </summary>
@@ -38,7 +32,7 @@ public sealed class SixelImage(string filename, bool animationDisabled = false) 
     /// <summary>
     /// Gets a value indicating whether the image should be animated.
     /// </summary>
-    public bool AnimationDisabled { get; init; } = animationDisabled;
+    public bool AnimationDisabled { get; init; }
 
     /// <summary>
     /// Gets or sets the current frame of the image.
@@ -58,9 +52,14 @@ public sealed class SixelImage(string filename, bool animationDisabled = false) 
         }
     }
 
-    internal SixLabors.ImageSharp.Image<Rgba32> Image { get; } = SixLabors.ImageSharp.Image.Load<Rgba32>(filename);
+    internal Image<Rgba32> Image { get; private set; }
     private readonly Dictionary<int, Sixel> _cachedSixels = [];
     private int _frameToRender;
+
+    public PixelImage(string filename, bool animationDisabled = false) {
+        AnimationDisabled = animationDisabled;
+        Image = SixImage.Load<Rgba32>(filename);
+    }
 
     /// <inheritdoc/>
     protected override Measurement Measure(RenderOptions options, int maxWidth) {

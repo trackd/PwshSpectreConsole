@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Spectre.Console;
-using Spectre.Console.Rendering;
-
-namespace PwshSpectreConsole;
+﻿namespace PwshSpectreConsole;
 
 /// <summary>
 /// Helper methods for creating and working with sixel-related segments.

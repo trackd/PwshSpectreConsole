@@ -80,22 +80,22 @@ function Get-SpectreImage {
         $image = $null
         if ($Format -eq 'Auto') {
             if ($script:TerminalSupportsSixel -or $Force.IsPresent) {
-                $image = [PwshSpectreConsole.SixelImage]::new($imagePathResolved, !$Animation)
+                $image = [PwshSpectreConsole.PixelImage]::new($imagePathResolved, !$Animation)
             }
             else {
-                $image = [PwshSpectreConsole.BlockImage]::new($imagePathResolved, !$Animation)
+                $image = [PwshSpectreConsole.CellImage]::new($imagePathResolved)
             }
         }
         elseif ($Format -eq 'Sixel') {
             if ($script:TerminalSupportsSixel -or $Force.IsPresent) {
-                $image = [PwshSpectreConsole.SixelImage]::new($imagePathResolved, !$Animation)
+                $image = [PwshSpectreConsole.PixelImage]::new($imagePathResolved, !$Animation)
             }
             else {
                 throw 'Sixel format is not supported in this terminal, use -Force to override.'
             }
         }
         elseif ($Format -eq 'Blocks') {
-            $image = [PwshSpectreConsole.BlockImage]::new($imagePathResolved, !$Animation)
+            $image = [PwshSpectreConsole.CellImage]::new($imagePathResolved)
         }
 
         if ($MaxWidth) {

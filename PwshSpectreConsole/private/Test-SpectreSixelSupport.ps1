@@ -12,7 +12,7 @@ function Test-SpectreSixelSupport {
     try {
         # $response = Get-ControlSequenceResponse -ControlSequence "[c"
         # return $response.Contains(";4;")
-        [PwshSpectreConsole.Compatibility]::TerminalSupportsSixel()
+        [PwshSpectreConsole.Terminal.Compatibility]::TerminalSupportsSixel()
     } catch {
         return $false
     }

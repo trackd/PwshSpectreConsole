@@ -118,7 +118,7 @@ $script:SpectreConsole = [Spectre.Console.AnsiConsole]::Create($script:SpectreCo
 Initialize-SpectreConsoleDimensions
 
 # cache the DA1 response.
-$script:TerminalSupportsSixel = [PwshSpectreConsole.Compatibility]::TerminalSupportsSixel()
+$script:TerminalSupportsSixel = [PwshSpectreConsole.Terminal.Compatibility]::TerminalSupportsSixel()
 
 $script:SpectreProfile = Get-SpectreProfile
 if ($script:SpectreProfile.Unicode -eq $true -or $env:IgnoreSpectreConsoleEncoding) {

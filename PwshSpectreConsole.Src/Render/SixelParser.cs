@@ -1,19 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Processing.Processors.Quantization;
-// using Spectre.Console;
-using Color = SixLabors.ImageSharp.Color;
+using Size = SixLabors.ImageSharp.Size;
 
-namespace PwshSpectreConsole;
+namespace PwshSpectreConsole.Render;
 
 /// <summary>
 /// Contains methods for converting an image to a Sixel format.
 /// </summary>
-public static class SixelParser {
+public static partial class SixelParser {
     /// <summary>
     /// Converts an image to a Sixel object.
     /// This uses a copy of the c# sixel codec from @trackd and @ShaunLawrie in https://github.com/trackd/Sixel.

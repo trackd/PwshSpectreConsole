@@ -27,8 +27,9 @@ function New-TableRow {
                 continue
             }
             if ($cell -match $detectVT) {
-                # ConvertTo-SpectreDecoration -String $cell @opts
-                [PwshSpectreConsole.VTParser]::ToParagraph($cell)
+                # Use optimized fast paragraph to reduce allocations
+                $fp = [PwshSpectreConsole.VTParser]::ToParagraph($cell)
+                if ($null -ne $fp) { $fp.SingleLineOverride = $true; $fp }
                 continue
             }
             # Swap spectre renderable objects with the raw spectre renderable object

@@ -27,7 +27,7 @@ foreach ($directory in @('private', 'public')) {
 Initialize-SpectreConsoleDimensions
 
 # cache the DA1 response.
-$script:TerminalSupportsSixel = [PwshSpectreConsole.Compatibility]::TerminalSupportsSixel()
+$script:TerminalSupportsSixel = [PwshSpectreConsole.Terminal.Compatibility]::TerminalSupportsSixel()
 
 $script:SpectreProfile = Get-SpectreProfile
 if ($script:SpectreProfile.Unicode -eq $true -or $env:IgnoreSpectreConsoleEncoding) {
