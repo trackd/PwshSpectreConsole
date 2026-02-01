@@ -5,7 +5,7 @@ namespace PwshSpectreConsole.Render;
 /// <summary>
 /// Contains methods for converting an image to a Sixel format.
 /// </summary>
-public static partial class SixelParser {
+public static partial class SixelRender {
     /// <summary>
     /// Converts an image to a Sixel object.
     /// This uses a copy of the c# sixel codec from @trackd and @ShaunLawrie in https://github.com/trackd/Sixel.

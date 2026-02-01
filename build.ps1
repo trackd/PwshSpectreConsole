@@ -40,7 +40,6 @@ if ($FullNameFilter) {
 if ($PesterOutput) {
     $buildparams['PesterOutput'] = $PesterOutput
 }
-# Run InvokeBuild in a separate process to avoid DLL locking issues
 if (-not $env:CI) {
     # In local environment, run in separate PowerShell to allow rebuilds without restart
     $sb = {
@@ -49,10 +48,6 @@ if (-not $env:CI) {
         # $Result
     }
     pwsh -NoProfile -Command $sb -args $buildparams
-    $RunMergedPsm = @{
-        Task = 'TestMerge'
-    }
-    # pwsh -NoProfile -Command $sb -args $RunMergedPsm
 }
 else {
     # In CI environment, run directly

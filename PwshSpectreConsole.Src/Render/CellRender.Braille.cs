@@ -1,7 +1,6 @@
 ﻿namespace PwshSpectreConsole.Render;
 
-public static partial class CellParser {
-
+public static partial class CellRender {
     internal static void RenderBraille(Image<Rgba32> image, ref ImageCanvas canvas) {
         int width = image.Width;
         int height = image.Height;

@@ -138,20 +138,20 @@ public sealed class CellImage : Renderable {
             switch (mode) {
                 case ImageTypes.Blocks:
                 case ImageTypes.HalfBlocks:
-                    CellParser.RenderHalfCellblocks(image, ref canvas);
+                    CellRender.RenderHalfCellblocks(image, ref canvas);
                     break;
                 case ImageTypes.Sixel:
                 case ImageTypes.Auto:
-                    CellParser.RenderHalfCellblocks(image, ref canvas);
+                    CellRender.RenderHalfCellblocks(image, ref canvas);
                     break;
                 case ImageTypes.BlockElements:
-                    CellParser.RenderBlockElements(image, ref canvas);
+                    CellRender.RenderBlockElements(image, ref canvas);
                     break;
                 case ImageTypes.Braille:
-                    CellParser.RenderBraille(image, ref canvas);
+                    CellRender.RenderBraille(image, ref canvas);
                     break;
                 default:
-                    CellParser.RenderHalfCellblocks(image, ref canvas);
+                    CellRender.RenderHalfCellblocks(image, ref canvas);
                     break;
             }
 

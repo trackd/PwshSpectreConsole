@@ -175,16 +175,11 @@ task Test {
     if ($PesterOutput) {
         $pesterConfig.Output.Verbosity = $PesterOutput
     }
-    if ($BuildTask -eq 'TestMerge') {
-        Write-Host "Running merged PSM1 tests..." -ForegroundColor Yellow
-        $env:RunMergedPsm1Tests = $true
-        Import-Module (Resolve-Path (Join-Path $script:config.OutputPath "$($script:config.moduleName).psd1"))
-    }
-    else {
-        Write-Host "Running source module tests..." -ForegroundColor Yellow
-        # Import-Module (Resolve-Path (Join-Path $script:config.ModuleSourcePath "$($script:config.moduleName).psd1"))
-        Import-Module (Resolve-Path (Join-Path $script:config.OutputPath "$($script:config.moduleName).psd1"))
-    }
+
+    Write-Host "Running merged PSM1 tests..." -ForegroundColor Yellow
+    $env:RunMergedPsm1Tests = $true
+    Import-Module (Resolve-Path (Join-Path $script:config.OutputPath "$($script:config.moduleName).psd1"))
+
     Invoke-Pester -Configuration $pesterConfig @splat
     Remove-Item Env:RunMergedPsm1Tests -ErrorAction Ignore
 }

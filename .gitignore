@@ -39,3 +39,5 @@ testResults.xml
 .github/
 PwshSpectreConsole/lib/*
 output/
+ref/
+foo.ps1

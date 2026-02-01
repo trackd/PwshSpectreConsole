@@ -1,6 +1,6 @@
 ﻿namespace PwshSpectreConsole.Render;
 
-public static partial class CellParser {
+public static partial class CellRender {
     private static bool IsTransparent(Rgba32 pixel) => pixel.A == 0;
     private static bool IsTransparentAdv(Rgba32 pixel) {
         if (pixel.A == 0) return true;

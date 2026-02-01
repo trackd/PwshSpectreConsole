@@ -81,7 +81,7 @@ public sealed class PixelImage : Renderable {
         // Write the sixel data as a control segment.
         // Parsing is expensive, cache the result for the current width.
         if (!_cachedSixels.TryGetValue(maxWidth, out Sixel sixel)) {
-            sixel = SixelParser.ImageToSixel(Image, maxWidth, AnimationDisabled);
+            sixel = SixelRender.ImageToSixel(Image, maxWidth, AnimationDisabled);
             _cachedSixels.Add(maxWidth, sixel);
         }
 

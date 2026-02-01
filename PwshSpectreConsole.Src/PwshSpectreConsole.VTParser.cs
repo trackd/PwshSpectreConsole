@@ -90,11 +90,7 @@ public static class VTParser {
 
     // helper to access the internal _pos via unsafe reflection-like approach isn't available here,
     // so we emulate a small helper that tries to avoid exposing internals: hack by appending and trimming not needed.
-    // Simpler: expose a small method to check if builder is empty by attempting to ToString and reusing string -
-    // but ToString returns and returns buffer. To avoid complexity, implement a tiny helper here using Try pattern.
     private static int VsbLength(ref ValueStringBuilder vsb) => vsb.Length;
-
-    // The rest of the code mirrors VTParser's implementations but simplified for this demo.
     private static int ParseEscapeSequence(ReadOnlySpan<char> span, int start, ref StyleState style) {
         int i = start + 2;
         const int MaxEscapeSequenceLength = 1024;
@@ -102,12 +98,15 @@ public static class VTParser {
         int paramCount = 0;
         byte currentNumber = 0;
         bool hasNumber = false;
-        int escapeLength = 0;
-
-        while (i < span.Length && span[i] != SGR_END && escapeLength < MaxEscapeSequenceLength) {
+        for (int escapeLength = 0; i < span.Length && span[i] != SGR_END && escapeLength < MaxEscapeSequenceLength; escapeLength++) {
             if (IsDigit(span[i])) {
                 int digit = span[i] - '0';
-                if (currentNumber > 25) { currentNumber = 255; } else { int tmp = (currentNumber * 10) + digit; currentNumber = tmp > 255 ? (byte)255 : (byte)tmp; }
+                if (currentNumber > 25) {
+                    currentNumber = 255;
+                }
+                else {
+                    int tmp = (currentNumber * 10) + digit; currentNumber = tmp > 255 ? (byte)255 : (byte)tmp;
+                }
                 hasNumber = true;
             }
             else if (span[i] is ';' or ':') {
@@ -118,7 +117,7 @@ public static class VTParser {
                 return start + 1;
             }
 
-            i++; escapeLength++;
+            i++;
         }
 
         if (i >= span.Length || span[i] != SGR_END) return start + 1;

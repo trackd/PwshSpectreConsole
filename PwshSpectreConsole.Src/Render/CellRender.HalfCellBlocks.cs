@@ -1,6 +1,6 @@
 ﻿namespace PwshSpectreConsole.Render;
 
-public static partial class CellParser {
+public static partial class CellRender {
     internal static void RenderHalfCellblocks(Image<Rgba32> image, ref ImageCanvas canvas) {
         for (int y = 0; y < image.Height; y += 2) {
             int cy = y / 2;

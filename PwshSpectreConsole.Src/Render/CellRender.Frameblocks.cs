@@ -1,6 +1,6 @@
 ﻿namespace PwshSpectreConsole.Render;
 
-public static partial class CellParser {
+public static partial class CellRender {
     internal static void RenderBlockElements(Image<Rgba32> image, ref ImageCanvas canvas) {
         int canvasWidth = canvas.Width;
         int canvasHeight = canvas.Height;
