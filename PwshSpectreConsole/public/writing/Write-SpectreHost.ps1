@@ -1,5 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-
 function Write-SpectreHost {
     <#
     .SYNOPSIS
@@ -28,8 +26,13 @@ function Write-SpectreHost {
         [object] $Message,
         [switch] $NoNewline,
         [switch] $PassThru,
-        [ValidateSet([SpectreConsoleJustify], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
+        [ValidateSet([PwshSpectreConsole.SpectreConsoleJustify], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [string]$Justify = "Left"
     )
-    return Write-SpectreHostInternalMarkup $Message -Justify $Justify -PassThru:$PassThru -NoNewline:$NoNewline
+    return [PwshSpectreConsole.PowerShell.ConsoleUtilities]::WriteMarkup(
+        $Message,
+        [Spectre.Console.Justify]::$Justify,
+        $NoNewline,
+        $PassThru
+    )
 }

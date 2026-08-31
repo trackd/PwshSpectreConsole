@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Format-SpectreTable {
     <#
     .SYNOPSIS
@@ -120,7 +117,7 @@ function Format-SpectreTable {
         [Switch] $Wrap,
         [Parameter(ParameterSetName = 'View')]
         [String] $View,
-        [ValidateSet([SpectreConsoleTableBorder], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
+        [ValidateSet([PwshSpectreConsole.SpectreConsoleTableBorder], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [string] $Border = "Rounded",
         [ColorTransformationAttribute()]
         [ArgumentCompletionsSpectreColors()]
@@ -131,7 +128,7 @@ function Format-SpectreTable {
         [ColorTransformationAttribute()]
         [ArgumentCompletionsSpectreColors()]
         [Spectre.Console.Color] $TextColor = $script:DefaultTableTextColor,
-        [ValidateScript({ $_ -gt 0 -and $_ -le (Get-HostWidth) }, ErrorMessage = "Value '{0}' is invalid. Cannot be negative or exceed console width.")]
+        [ValidateScript({ $_ -gt 0 -and $_ -le [PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidth() }, ErrorMessage = "Value '{0}' is invalid. Cannot be negative or exceed console width.")]
         [int] $Width,
         [switch] $HideHeaders,
         [String] $Title,
@@ -171,8 +168,8 @@ function Format-SpectreTable {
                 $collector.add($renderableKey)
             } elseif ($entry -is [hashtable] -or $entry -is [ordered]) {
                 # Recursively expand values in the hashtable finding any renderables and putting them in the lookup table
-                # Renderables is mutable (hashtables just are) so the Convert-HashtableToRenderSafePSObject will add the renderables to the lookup table
-                $entry = Convert-HashtableToRenderSafePSObject -Hashtable $entry -Renderables $renderables
+                # Renderables is mutable, so the compiled converter adds discovered renderables to the lookup table.
+                $entry = [PwshSpectreConsole.PowerShell.TableUtilities]::ConvertHashtableToRenderSafePSObject($entry, $renderables)
                 $collector.add($entry)
             } else {
                 $collector.add($entry)
@@ -192,24 +189,38 @@ function Format-SpectreTable {
         if (-Not $collector.shapeInfo) {
             # scalar array, no header
             $rowoptions.scalar = $tableoptions.scalar = $true
-            $table = Add-TableColumns -Table $table @tableoptions -Color $HeaderColor
+            $table = [PwshSpectreConsole.PowerShell.TableUtilities]::AddColumns(
+                $table,
+                $null,
+                $tableoptions.Title,
+                $HeaderColor,
+                $true,
+                [bool]$tableoptions.Wrap
+            )
         } else {
             # grab the FormatStartData
-            $Headers = Get-TableHeader $collector[0]
+            $Headers = [PwshSpectreConsole.PowerShell.TableUtilities]::GetHeader($collector[0])
             if ($Headers) {
-                $table = Add-TableColumns -Table $table -formatData $Headers -Color $HeaderColor
+                $table = [PwshSpectreConsole.PowerShell.TableUtilities]::AddColumns(
+                    $table,
+                    $Headers,
+                    $null,
+                    $HeaderColor,
+                    $false,
+                    [bool]$tableoptions.Wrap
+                )
             } else {
                 return
             }
         }
         foreach ($item in $collector.FormatEntryInfo) {
             if ($rowoptions.scalar) {
-                $row = New-TableRow -Entry $item.Text -Renderables $renderables -Color $TextColor @rowoptions
+                $row = [PwshSpectreConsole.PowerShell.TableUtilities]::NewRow($item.Text, $TextColor, [bool]$rowoptions.AllowMarkup, $true, $renderables)
             } else {
                 if ($null -eq $item.FormatPropertyFieldList.propertyValue) {
                     continue
                 }
-                $row = New-TableRow -Entry $item.FormatPropertyFieldList.propertyValue -Renderables $renderables -Color $TextColor @rowoptions
+                $row = [PwshSpectreConsole.PowerShell.TableUtilities]::NewRow($item.FormatPropertyFieldList.propertyValue, $TextColor, [bool]$rowoptions.AllowMarkup, $false, $renderables)
             }
             $table = [Spectre.Console.TableExtensions]::AddRow($table, [Spectre.Console.Rendering.Renderable[]]$row)
         }

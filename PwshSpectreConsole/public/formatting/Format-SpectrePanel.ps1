@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Format-SpectrePanel {
     <#
     .SYNOPSIS
@@ -69,13 +66,13 @@ function Format-SpectrePanel {
         [object] $Data,
         [Alias("Title")]
         [string] $Header,
-        [ValidateSet([SpectreConsoleBoxBorder], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
+        [ValidateSet([PwshSpectreConsole.SpectreConsoleBoxBorder], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [string] $Border = "Rounded",
         [switch] $Expand,
         [ColorTransformationAttribute()]
         [ArgumentCompletionsSpectreColors()]
         [Spectre.Console.Color] $Color = $script:AccentColor,
-        [ValidateScript({ $_ -gt 0 -and $_ -le (Get-HostWidth) }, ErrorMessage = "Value '{0}' is invalid. Cannot be negative or exceed console width.")]
+        [ValidateScript({ $_ -gt 0 -and $_ -le [PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidth() }, ErrorMessage = "Value '{0}' is invalid. Cannot be negative or exceed console width.")]
         [int]$Width,
         [ValidateScript({ $_ -gt 0 }, ErrorMessage = "Value '{0}' is invalid. Cannot be negative.")]
         [int]$Height

@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Set-SpectreColors {
     <#
     .SYNOPSIS

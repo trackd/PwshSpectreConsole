@@ -8,9 +8,7 @@ Describe "Write-SpectreCalendar" {
             $testColor = Get-RandomColor
             Write-Debug $testBorder
             Write-Debug $testColor
-            Mock Write-AnsiConsole {
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
         }
 
         It "writes calendar for a date" {
@@ -27,7 +25,7 @@ Describe "Write-SpectreCalendar" {
             $answer = (Get-Culture -Name en-us).DateTimeFormat.AbbreviatedDayNames
             # $days | Should -Be @('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat')
             $days | Should -Be $answer
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "writes calendar for a date with events" {
@@ -39,7 +37,7 @@ Describe "Write-SpectreCalendar" {
             $sample = $testConsole.Output
             $sample | Should -Match 'March\s+2024'
             $sample | Should -Match 'Event 1'
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "writes calendar for a date with something else going on" {
@@ -55,13 +53,11 @@ Describe "Write-SpectreCalendar" {
                     }
                 }
             }
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should match the snapshot" {
-            Mock Write-AnsiConsole {
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
             $events = @{
                 '2022-03-10' = 'Event 1'
                 '2022-03-20' = 'Event 2'

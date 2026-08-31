@@ -90,18 +90,6 @@ using namespace Spectre.Console.Rendering
 using namespace PwshSpectreConsole
 '@ | Out-String | Set-Content -Path $MergedPSM1Path -NoNewline
 
-    # Get all the classes
-    'completions','models' | ForEach-Object {
-        Get-ChildItem (Resolve-Path (Join-Path $script:config.ModuleSourcePath 'private' $_)) -File -Recurse -Include @('*.ps1','*.psm1') | ForEach-Object {
-            MergePSM1 -Path $_
-        }
-    } | Out-String | Add-Content -Path $MergedPSM1Path -NoNewline
-
-    # private functions
-    Get-ChildItem (Resolve-Path (Join-Path $script:config.ModuleSourcePath 'private')) -File -Recurse -Include '*.ps1' | ForEach-Object {
-        MergePSM1 -Path $_
-    } | Out-String | Add-Content -Path $MergedPSM1Path -NoNewline
-
     # public functions
     Get-ChildItem (Resolve-Path (Join-Path $script:config.ModuleSourcePath 'public')) -File -Recurse -Include '*.ps1' | ForEach-Object {
         MergePSM1 -Path $_
@@ -140,6 +128,11 @@ task Test {
     if (-not (Test-Path $script:config.TestPath)) {
         Write-Host "    Test directory not found at: $($script:config.TestPath)" -ForegroundColor Yellow
         return
+    }
+    # The suite currently uses Pester 5 mocking/assertion semantics. Avoid
+    # auto-loading Pester 6 when both major versions are installed.
+    if (-not (Get-Module -Name Pester)) {
+        Import-Module Pester -MaximumVersion 5.999 -ErrorAction Stop
     }
     $pesterConfig = New-PesterConfiguration
     $pesterConfig.Run.Path = $script:config.TestPath

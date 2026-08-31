@@ -140,5 +140,5 @@ function Invoke-SpectreCommandWithProgress {
         [Parameter(Mandatory)]
         [scriptblock] $ScriptBlock
     )
-    Start-AnsiConsoleProgress $ScriptBlock
+    return [PwshSpectreConsole.PowerShell.InvocationUtilities]::StartProgress($ScriptBlock)
 }

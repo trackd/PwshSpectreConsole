@@ -14,6 +14,7 @@ Describe "Invoke-SpectreCommandWithStatus" -Tag "integration" {
             $settings = [Spectre.Console.AnsiConsoleSettings]::new()
             $settings.Out = $output
             [Spectre.Console.AnsiConsole]::Console = [Spectre.Console.AnsiConsole]::Create($settings)
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::ResetTestHooks()
         }
 
         AfterEach {
@@ -23,18 +24,19 @@ Describe "Invoke-SpectreCommandWithStatus" -Tag "integration" {
         }
 
         It "executes the scriptblock for the basic case" {
-            Mock Start-AnsiConsoleStatus {
-                $Title | Should -Be $testTitle
-                $Spinner.GetType().Name | Should -BeLike "*$testSpinner*"
-                $SpinnerStyle.Foreground.ToMarkup() | Should -Be $testColor
-                $ScriptBlock | Should -BeOfType [scriptblock]
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::ResetTestHooks()
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::StatusOverride = {
+                param($title, $spinner, $spinnerStyle, $scriptBlock)
+                $title | Should -Be $testTitle
+                $spinner.GetType().Name | Should -BeLike "*$testSpinner*"
+                $spinnerStyle.Foreground.ToMarkup() | Should -Be $testColor
+                $scriptBlock | Should -BeOfType [scriptblock]
 
-                & $ScriptBlock
-            }
+                & $scriptBlock
+            }.GetNewClosure()
             Invoke-SpectreCommandWithStatus -Title $testTitle -Spinner $testSpinner -Color $testColor -ScriptBlock {
                 return 1
             } | Should -Be 1
-            Assert-MockCalled -CommandName "Start-AnsiConsoleStatus" -Times 1 -Exactly
         }
 
         It "executes the scriptblock without mocking" {

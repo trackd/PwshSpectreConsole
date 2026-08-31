@@ -18,9 +18,17 @@ function Write-SpectreExample {
     Write-SpectreRule $Title -Color ([Spectre.Console.Color]::SteelBlue1)
     Write-SpectreHost "`n$Description"
     if (!$HideHeader) {
-        Write-CodeblockHeader
+        [PwshSpectreConsole.PowerShell.SyntaxHighlighter]::WriteHeader('pwsh', $Host.UI.RawUI.WindowSize.Width)
     }
-    $Codeblock | Write-Codeblock -SyntaxHighlight -ShowLineNumbers
+    [PwshSpectreConsole.PowerShell.SyntaxHighlighter]::WriteCodeblock(
+        $Codeblock,
+        $true,
+        $true,
+        $null,
+        $null,
+        'Github',
+        $Host.UI.RawUI.WindowSize.Width
+    )
     if (!$NoNewline) {
         Write-Host ""
     }

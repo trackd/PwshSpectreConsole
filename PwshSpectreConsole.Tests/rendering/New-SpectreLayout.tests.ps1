@@ -4,10 +4,7 @@ Describe "New-SpectreLayout" {
         BeforeEach {
             $testConsole = [Spectre.Console.Testing.TestConsole]::new()
             $testConsole.EmitAnsiSequences = $true
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.Rendering.Renderable]
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
         }
 
         It "Should generate a layout" {
@@ -22,7 +19,7 @@ Describe "New-SpectreLayout" {
             $renderable | Should -BeOfType [Spectre.Console.Layout]
 
             $renderable | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
             { Assert-OutputMatchesSnapshot -SnapshotName "New-SpectreLayout" -Output $testConsole.Output } | Should -Not -Throw
 
         }

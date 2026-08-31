@@ -6,6 +6,13 @@ Describe "Invoke-SpectreLive" {
             $settings = [Spectre.Console.AnsiConsoleSettings]::new()
             $settings.Out = $output
             [Spectre.Console.AnsiConsole]::Console = [Spectre.Console.AnsiConsole]::Create($settings)
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::ResetTestHooks()
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::LiveOverride = {
+                param($data, $scriptBlock)
+                $data | Should -BeOfType [Spectre.Console.Rendering.Renderable]
+                $scriptBlock | Should -BeOfType [scriptblock]
+                & $scriptBlock $null
+            }
         }
 
         AfterEach {
@@ -25,13 +32,6 @@ Describe "Invoke-SpectreLive" {
         }
 
         It "executes the scriptblock with background jobs" {
-            Mock Start-AnsiConsoleLive {
-                $Data | Should -BeOfType [Spectre.Console.Rendering.Renderable]
-                $ScriptBlock | Should -BeOfType [scriptblock]
-
-                & $ScriptBlock
-            }
-
             $table = @{ Name = "Test"; Value = "Value" } | Format-SpectreTable
             Invoke-SpectreLive -Data $table -ScriptBlock {
                 param (

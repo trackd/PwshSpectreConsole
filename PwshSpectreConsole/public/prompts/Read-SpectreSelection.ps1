@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Read-SpectreSelection {
     <#
     .SYNOPSIS
@@ -127,7 +124,7 @@ function Read-SpectreSelection {
         $spectrePrompt.SearchEnabled = $EnableSearch
         $spectrePrompt.SearchHighlightStyle = [Spectre.Console.Style]::new($SearchHighlightColor)
 
-        $selected = Invoke-SpectrePromptAsync -Prompt $spectrePrompt -TimeoutSeconds $TimeoutSeconds
+        $selected = [PwshSpectreConsole.PowerShell.InvocationUtilities]::InvokePrompt($spectrePrompt, $TimeoutSeconds, $script:DefaultValueColor)
 
         if ($ChoiceLabelProperty -is [scriptblock]) {
             $selected = $choicesToUse | Where-Object { (ForEach-Object -InputObject $_ -Process $ChoiceLabelProperty) -eq $selected }

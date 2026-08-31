@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Format-SpectreTree {
     <#
     .SYNOPSIS
@@ -54,7 +51,7 @@ function Format-SpectreTree {
         [Parameter(ValueFromPipeline, Mandatory)]
         [TreeItemTransformationAttribute()]
         [hashtable] $Data,
-        [ValidateSet([SpectreConsoleTreeGuide], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
+        [ValidateSet([PwshSpectreConsole.SpectreConsoleTreeGuide], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [Alias("Border")]
         [string] $Guide = "Line",
         [ColorTransformationAttribute()]
@@ -67,7 +64,7 @@ function Format-SpectreTree {
     $tree.Expanded = $true
 
     if ($Data.Children) {
-        Add-SpectreTreeNode -Node $tree -Children $Data.Children
+        [PwshSpectreConsole.PowerShell.TreeUtilities]::AddNodes($tree, $Data.Children)
     }
 
     $tree.Style = [Spectre.Console.Style]::new($Color)

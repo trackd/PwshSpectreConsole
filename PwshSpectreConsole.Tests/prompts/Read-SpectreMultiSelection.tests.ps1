@@ -5,28 +5,28 @@ Describe "Read-SpectreMultiSelection" {
             $testPageSize = Get-Random -Minimum 1 -Maximum 10
             $testColor = Get-RandomColor
             $itemsToBeSelectedNames = $null
-            Mock Invoke-SpectrePromptAsync {
-                $Prompt | Should -BeOfType [Spectre.Console.MultiSelectionPrompt[string]]
-                $Prompt.Title | Should -Be $testTitle
-                $Prompt.PageSize | Should -Be $testPageSize
-                $Prompt.HighlightStyle.Foreground.ToMarkup() | Should -Be $testColor
-
-                return $itemsToBeSelectedNames
-            }
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::TestPromptResult = $itemsToBeSelectedNames
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::ResetTestHooks()
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::UseTestPromptResult = $true
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::TestPromptResult = $itemsToBeSelectedNames
         }
 
         It "prompts and allows selection" {
             $itemsToBeSelectedNames = @("toBeSelected")
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::TestPromptResult = $itemsToBeSelectedNames
             $choices = (Get-RandomList) + $itemsToBeSelectedNames
             Read-SpectreMultiSelection -Title $testTitle -Choices $choices -PageSize $testPageSize -Color $testColor | Should -Be $itemsToBeSelectedNames
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.MultiSelectionPrompt[string]]
         }
 
         It "prompts and allows multiple selection" {
             $itemsToBeSelectedNames = @("toBeSelected", "also to be selected")
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::TestPromptResult = $itemsToBeSelectedNames
             $choices = $itemsToBeSelectedNames + (Get-RandomList)
             Read-SpectreMultiSelection -Title $testTitle -Choices $choices -PageSize $testPageSize -Color $testColor | Should -Be $itemsToBeSelectedNames
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.MultiSelectionPrompt[string]]
         }
 
         It "throws with duplicate labels" {
@@ -43,17 +43,20 @@ Describe "Read-SpectreMultiSelection" {
 
         It "prompts with an object input and allows selection" {
             $itemsToBeSelectedNames = @("toBeSelected")
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::TestPromptResult = $itemsToBeSelectedNames
             $itemToBeSelected = [PSCustomObject]@{ ColumnToSelectFrom = $itemsToBeSelectedNames[0]; Other = Get-RandomString }
             Read-SpectreMultiSelection -Title $testTitle -ChoiceLabelProperty "ColumnToSelectFrom" -PageSize $testPageSize -Color $testColor -Choices @(
                 [PSCustomObject]@{ ColumnToSelectFrom = Get-RandomString; Other = Get-RandomString },
                 $itemToBeSelected,
                 [PSCustomObject]@{ ColumnToSelectFrom = Get-RandomString; Other = Get-RandomString }
             ) | Should -Be $itemToBeSelected
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.MultiSelectionPrompt[string]]
         }
 
         It "prompts with an object input and allows multiple selection" {
             $itemsToBeSelectedNames = @("toBeSelected", "also to be selected")
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::TestPromptResult = $itemsToBeSelectedNames
             $itemToBeSelected = [PSCustomObject]@{ ColumnToSelectFrom = $itemsToBeSelectedNames[0]; Other = Get-RandomString }
             $anotherItemToBeSelected = [PSCustomObject]@{ ColumnToSelectFrom = $itemsToBeSelectedNames[1]; Other = Get-RandomString }
             Read-SpectreMultiSelection -Title $testTitle -ChoiceLabelProperty "ColumnToSelectFrom" -PageSize $testPageSize -Color $testColor -Choices @(
@@ -62,18 +65,22 @@ Describe "Read-SpectreMultiSelection" {
                 [PSCustomObject]@{ ColumnToSelectFrom = Get-RandomString; Other = Get-RandomString },
                 $anotherItemToBeSelected
             ) | Should -Be @($itemToBeSelected, $anotherItemToBeSelected)
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.MultiSelectionPrompt[string]]
         }
 
         It "accepts pipeline input for choices" {
             $itemsToBeSelectedNames = @("toBeSelected", "also to be selected")
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::TestPromptResult = $itemsToBeSelectedNames
             $choices = $itemsToBeSelectedNames + (Get-RandomList)
             $choices | Read-SpectreMultiSelection -Title $testTitle -PageSize $testPageSize -Color $testColor | Should -Be $itemsToBeSelectedNames
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.MultiSelectionPrompt[string]]
         }
 
         It "accepts pipeline input for object choices with ChoiceLabelProperty" {
             $itemsToBeSelectedNames = @("toBeSelected", "also to be selected")
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::TestPromptResult = $itemsToBeSelectedNames
             $itemToBeSelected = [PSCustomObject]@{ ColumnToSelectFrom = $itemsToBeSelectedNames[0]; Other = Get-RandomString }
             $anotherItemToBeSelected = [PSCustomObject]@{ ColumnToSelectFrom = $itemsToBeSelectedNames[1]; Other = Get-RandomString }
             $choices = @(
@@ -83,11 +90,13 @@ Describe "Read-SpectreMultiSelection" {
                 $anotherItemToBeSelected
             )
             $choices | Read-SpectreMultiSelection -Title $testTitle -ChoiceLabelProperty "ColumnToSelectFrom" -PageSize $testPageSize -Color $testColor | Should -Be @($itemToBeSelected, $anotherItemToBeSelected)
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.MultiSelectionPrompt[string]]
         }
 
         It "prompts with a scriptblock ChoiceLabelProperty" {
             $itemsToBeSelectedNames = @("hello_42", "world_99")
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::TestPromptResult = $itemsToBeSelectedNames
             $itemToBeSelected = [PSCustomObject]@{ Name = "hello"; Id = 42 }
             $anotherItemToBeSelected = [PSCustomObject]@{ Name = "world"; Id = 99 }
             Read-SpectreMultiSelection -Title $testTitle -ChoiceLabelProperty { "$($_.Name)_$($_.Id)" } -PageSize $testPageSize -Color $testColor -Choices @(
@@ -96,11 +105,13 @@ Describe "Read-SpectreMultiSelection" {
                 [PSCustomObject]@{ Name = "bar"; Id = 2 },
                 $anotherItemToBeSelected
             ) | Should -Be @($itemToBeSelected, $anotherItemToBeSelected)
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.MultiSelectionPrompt[string]]
         }
 
         It "accepts pipeline input with a scriptblock ChoiceLabelProperty" {
             $itemsToBeSelectedNames = @("hello_42", "world_99")
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::TestPromptResult = $itemsToBeSelectedNames
             $itemToBeSelected = [PSCustomObject]@{ Name = "hello"; Id = 42 }
             $anotherItemToBeSelected = [PSCustomObject]@{ Name = "world"; Id = 99 }
             $choices = @(
@@ -110,7 +121,8 @@ Describe "Read-SpectreMultiSelection" {
                 $anotherItemToBeSelected
             )
             $choices | Read-SpectreMultiSelection -Title $testTitle -ChoiceLabelProperty { "$($_.Name)_$($_.Id)" } -PageSize $testPageSize -Color $testColor | Should -Be @($itemToBeSelected, $anotherItemToBeSelected)
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.MultiSelectionPrompt[string]]
         }
     }
 }

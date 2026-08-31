@@ -4,10 +4,7 @@ Describe "Format-SpectreColumns" {
         BeforeEach {
             $testConsole = [Spectre.Console.Testing.TestConsole]::new()
             $testConsole.EmitAnsiSequences = $true
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.Rendering.Renderable]
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
         }
 
         It "Should format an array of strings into columns" {
@@ -19,14 +16,14 @@ Describe "Format-SpectreColumns" {
                 "cupidatat", "non", "proident", "sunt", "in", "culpa")
             $renderable | Should -BeOfType [Spectre.Console.Columns]
             $renderable | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should expand items to fill the available space" {
             $renderable = @("left", "middle", "right") | Foreach-Object { $_ | Format-SpectrePanel } | Format-SpectreColumns -Expand
             $renderable | Should -BeOfType [Spectre.Console.Columns]
             $renderable | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
             { Assert-OutputMatchesSnapshot -SnapshotName "Format-SpectreColumns.Expanded" -Output $testConsole.Output } | Should -Not -Throw
         }
 
@@ -38,7 +35,7 @@ Describe "Format-SpectreColumns" {
             $renderable.Padding.Right | Should -Be 4
             $renderable.Padding.Bottom | Should -Be 4
             $renderable.Padding.Left | Should -Be 4
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
     }
 }

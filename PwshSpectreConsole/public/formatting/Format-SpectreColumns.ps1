@@ -1,5 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-
 function Format-SpectreColumns {
     <#
     .SYNOPSIS
@@ -56,14 +54,14 @@ function Format-SpectreColumns {
                 if ($dataItem -is [Spectre.Console.Rendering.Renderable]) {
                     $columnItems += $dataItem
                 } else {
-                    $columnItems += $dataItem | ConvertTo-Renderable
+                    $columnItems += [PwshSpectreConsole.PowerShell.RenderableUtilities]::ToRenderables($dataItem)
                 }
             }
         } else {
             if ($Data -is [Spectre.Console.Rendering.Renderable]) {
                 $columnItems += $Data
             } else {
-                $columnItems += $Data | ConvertTo-Renderable
+                $columnItems += [PwshSpectreConsole.PowerShell.RenderableUtilities]::ToRenderables($Data)
             }
         }
     }

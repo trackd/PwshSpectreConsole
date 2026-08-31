@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Format-SpectreBreakdownChart {
     <#
     .SYNOPSIS
@@ -39,8 +36,8 @@ function Format-SpectreBreakdownChart {
         [Parameter(ValueFromPipeline, Mandatory)]
         [ChartItemTransformationAttribute()]
         [object] $Data,
-        [ValidateScript({ $_ -gt 0 -and $_ -le (Get-HostWidth) }, ErrorMessage = "Value '{0}' is invalid. Cannot be negative or exceed console width.")]
-        [int]$Width = (Get-HostWidth),
+        [ValidateScript({ $_ -gt 0 -and $_ -le [PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidth() }, ErrorMessage = "Value '{0}' is invalid. Cannot be negative or exceed console width.")]
+        [int]$Width = ([PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidth()),
         [switch]$HideTags,
         [switch]$HideTagValues,
         [switch]$ShowPercentage
@@ -61,10 +58,10 @@ function Format-SpectreBreakdownChart {
     process {
         if ($Data -is [array]) {
             foreach ($dataItem in $Data) {
-                [Spectre.Console.BreakdownChartExtensions]::AddItem($chart, $dataItem.Label, $dataItem.Value, ($dataItem.Color | Convert-ToSpectreColor)) | Out-Null
+                [Spectre.Console.BreakdownChartExtensions]::AddItem($chart, $dataItem.Label, $dataItem.Value, [PwshSpectreConsole.PowerShell.ColorUtilities]::ToColorOrDefault($dataItem.Color, $script:AccentColor)) | Out-Null
             }
         } else {
-            [Spectre.Console.BreakdownChartExtensions]::AddItem($chart, $Data.Label, $Data.Value, ($Data.Color | Convert-ToSpectreColor)) | Out-Null
+            [Spectre.Console.BreakdownChartExtensions]::AddItem($chart, $Data.Label, $Data.Value, [PwshSpectreConsole.PowerShell.ColorUtilities]::ToColorOrDefault($Data.Color, $script:AccentColor)) | Out-Null
         }
     }
     end {

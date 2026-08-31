@@ -36,7 +36,7 @@ function Read-SpectrePause {
     $enterKey = 13
 
     # Drain input buffer so enter won't be pressed automatically
-    Clear-InputQueue
+    [PwshSpectreConsole.PowerShell.ConsoleUtilities]::ClearInputQueue()
 
     $returnLines = 2
     if (!$NoNewline) {
@@ -45,7 +45,7 @@ function Read-SpectrePause {
     }
     Write-SpectreHost $Message -NoNewline
     do {
-        $key = Read-ConsoleKey
+        $key = [PwshSpectreConsole.PowerShell.ConsoleUtilities]::ReadKey()
         if($AnyKey) {
             break
         }

@@ -1,5 +1,3 @@
-using module "..\..\private\completions\Transformers.psm1"
-
 function Format-SpectreJson {
     <#
     .SYNOPSIS
@@ -155,7 +153,9 @@ function Format-SpectreJson {
             BooleanStyle   = [Spectre.Console.Style]::new([Spectre.Console.Color]::LightSkyBlue1)
             NullStyle      = [Spectre.Console.Style]::new($script:DefaultValueColor)
         }
-        Merge-HashtableDefaults -UserStyle $JsonStyle -DefaultStyle $defaultJsonStyle
+        foreach ($invalidKey in [PwshSpectreConsole.PowerShell.StyleUtilities]::MergeDefaults($JsonStyle, $defaultJsonStyle)) {
+            Write-Warning "Key '$invalidKey' is not a valid default style property and will be ignored, styles must be one of $($defaultJsonStyle.Keys -join ', ')."
+        }
 
         $collector = [System.Collections.Generic.List[psobject]]::new()
         $splat = @{

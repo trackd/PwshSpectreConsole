@@ -342,5 +342,5 @@ function Invoke-SpectreLive {
         [scriptblock] $ScriptBlock
     )
 
-    Start-AnsiConsoleLive -Data $Data -ScriptBlock $ScriptBlock
+    return [PwshSpectreConsole.PowerShell.InvocationUtilities]::StartLive($Data, $ScriptBlock)
 }

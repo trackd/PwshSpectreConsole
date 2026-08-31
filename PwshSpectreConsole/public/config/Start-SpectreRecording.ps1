@@ -36,8 +36,8 @@ function Start-SpectreRecording {
     [Reflection.AssemblyMetadata("title", "Start-SpectreRecording")]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Scope = 'Function', Target = '*')]
     param(
-        [int] $Width = (Get-HostWidth),
-        [int] $Height = (Get-HostHeight),
+        [int] $Width = ([PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidth()),
+        [int] $Height = ([PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostHeight()),
         [ValidateSet("asciinema", "text", "html")]
         [string] $RecordingType = "asciinema",
         [switch] $CountdownAndClear

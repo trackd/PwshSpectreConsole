@@ -8,18 +8,7 @@ Describe "Format-SpectreTable" {
             $testBorder = Get-RandomBoxBorder
             $testColor = Get-RandomColor
 
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.Table]
-                $RenderableObject.Rows.Count | Should -Be $testData.Count
-                if ($testBorder -ne "None") {
-                    $RenderableObject.Border.GetType().Name | Should -BeLike "*$testBorder*"
-                }
-                if ($testColor) {
-                    $RenderableObject.BorderStyle.Foreground.ToMarkup() | Should -Be $testColor
-                }
-
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
         }
 
         It "Should create a table when default display members for a command are required" {
@@ -27,7 +16,7 @@ Describe "Format-SpectreTable" {
             $table = Format-SpectreTable -Data $testData -Border $testBorder -Color $testColor
             $table | Should -BeOfType [Spectre.Console.Table]
             $table | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should create a table when default display members for a command are required and input is piped" {
@@ -35,12 +24,13 @@ Describe "Format-SpectreTable" {
             $table = $testData | Format-SpectreTable -Border $testBorder -Color $testColor
             $table | Should -BeOfType [Spectre.Console.Table]
             $table | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should be able to retrieve default display members for command output with format data" {
             $testData = Get-ChildItem "$PSScriptRoot"
-            $defaultDisplayMembers = $testData | Format-Table | Get-TableHeader
+            $formatted = @($testData | Format-Table)
+            $defaultDisplayMembers = [PwshSpectreConsole.PowerShell.TableUtilities]::GetHeader($formatted[0])
             if ($IsLinux -or $IsMacOS) {
                 #  Expected @('UnixMode', 'User', 'Group', 'LastWrite…', 'Size', 'Name'), but got @('UnixMode', 'User', 'Group', 'LastWriteTime', 'Size', 'Name').
                 # i have no idea whats truncating LastWriteTime
@@ -53,9 +43,9 @@ Describe "Format-SpectreTable" {
 
         It "Should not throw and should return null when input does not have format data" {
             {
-                $defaultDisplayMembers = [hashtable]@{
+                $defaultDisplayMembers = [PwshSpectreConsole.PowerShell.TableUtilities]::GetHeader([hashtable]@{
                     "Hello" = "World"
-                } | Get-TableHeader
+                })
                 $defaultDisplayMembers | Should -Be $null
             } | Should -Not -Throw
         }
@@ -89,21 +79,21 @@ Describe "Format-SpectreTable" {
         It "Should be able to create a new table cell with spectre markup" {
             $rawString = "hello spectremarkup world"
             $ansiString = "hello [red]spectremarkup[/] world"
-            $result = New-TableCell -CellData $ansiString -AllowMarkup
+            $result = [PwshSpectreConsole.PowerShell.TableUtilities]::NewCell($ansiString, [Spectre.Console.Color]::Default, $true)
             $result | Should -BeOfType [Spectre.Console.Markup]
             $result.Length | Should -Be $rawString.Length
         }
 
         It "Should be able to create a new table cell without spectre markup by default" {
             $ansiString = "hello [red]spectremarkup[/] world"
-            $result = New-TableCell -CellData $ansiString
+            $result = [PwshSpectreConsole.PowerShell.TableUtilities]::NewCell($ansiString, [Spectre.Console.Color]::Default, $false)
             $result | Should -BeOfType [Spectre.Console.Text]
             $result.Length | Should -Be $ansiString.Length
         }
 
         It "Should be able to create a new table row with spectre markup" {
             $entryitem = Get-SpectreTableRowData -Markup
-            $result = New-TableRow -Entry $entryItem -AllowMarkup
+            $result = [PwshSpectreConsole.PowerShell.TableUtilities]::NewRow($entryItem, [Spectre.Console.Color]::Default, $true, $false, @{})
             $result -is [array] | Should -Be $true
             $result[0] | Should -BeOfType [Spectre.Console.Markup]
             $result.Count | Should -Be $entryitem.Count
@@ -111,7 +101,7 @@ Describe "Format-SpectreTable" {
 
         It "Should be able to create a new table row without spectre markup by default" {
             $entryitem = Get-SpectreTableRowData -Markup
-            $result = New-TableRow -Entry $entryItem
+            $result = [PwshSpectreConsole.PowerShell.TableUtilities]::NewRow($entryItem, [Spectre.Console.Color]::Default, $false, $false, @{})
             $result -is [array] | Should -Be $true
             $result[0] | Should -BeOfType [Spectre.Console.Text]
             $result[0].Length | Should -Be $entryItem[0].Length
@@ -121,7 +111,8 @@ Describe "Format-SpectreTable" {
         It "Should create a table and display results properly" {
             $testBorder = 'Markdown'
             $testData = Get-ChildItem "$PSScriptRoot"
-            $verification = $testdata | Format-Table | Get-TableHeader
+            $formatted = @($testdata | Format-Table)
+            $verification = [PwshSpectreConsole.PowerShell.TableUtilities]::GetHeader($formatted[0])
             $table = Format-SpectreTable -Data $testData -Border $testBorder -Color $testColor
             $table | Should -BeOfType [Spectre.Console.Table]
             $table | Out-SpectreHost
@@ -138,7 +129,7 @@ Describe "Format-SpectreTable" {
             } else {
                 $verification.keys | Should -Be $properties
             }
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should create a table and display ICollection results properly" {
@@ -152,7 +143,7 @@ Describe "Format-SpectreTable" {
             $testResult = $testConsole.Output | StripAnsi
             $clean = $testResult -replace '\s+|\|'
             $clean | Should -Be '{1}'
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should be able to use calculated properties" {
@@ -173,13 +164,11 @@ Describe "Format-SpectreTable" {
             $deconstructed[0] | Should -Be 'ProcessName'
             $deconstructed[1] | Should -Be 'TotalRunningTime'
             $deconstructed[4] | Should -Be 'pwsh'
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should match the snapshot" {
-            Mock Write-AnsiConsole {
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
             $table = [pscustomobject]@{
                 "Name"  = "Test 1"
                 "Value" = 10
@@ -200,9 +189,7 @@ Describe "Format-SpectreTable" {
         }
 
         It "VT escape sequences should be detected and be used instead of markup when creating table cells" {
-            Mock Write-AnsiConsole {
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
             $table = [pscustomobject]@{
                 # Markup can't be used in combination with VT sequences, VT takes priority
                 "Name"  = "[red]Test[/] `e[31m1`e[0m"

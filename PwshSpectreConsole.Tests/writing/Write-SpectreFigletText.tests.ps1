@@ -6,29 +6,21 @@ Describe "Write-SpectreFigletText" {
             [Spectre.Console.Testing.TestConsoleExtensions]::Width($testConsole, 180)
             $testColor = Get-RandomColor
             $testAlignment = Get-RandomJustify
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.FigletText]
-                $RenderableObject.Justification | Should -Be $testAlignment
-                $RenderableObject.Color.ToMarkup() | Should -Be $testColor
-
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
         }
 
         It "writes figlet text" {
             Write-SpectreFigletText -Text (Get-RandomString) -Alignment $testAlignment -Color $testColor
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "throws when the font file isn't found" {
             { Write-SpectreFigletText -FigletFontPath "notfound.flf" } | Should -Throw
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 0 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 0
         }
 
         It "Should match the snapshot" {
-            Mock Write-AnsiConsole {
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
             $testTitle = "f i glett"
             $testAlignment = "Center"
             $testColor = "DarkSeaGreen1_1"

@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Read-SpectreText {
     <#
     .SYNOPSIS
@@ -77,5 +74,5 @@ function Read-SpectreText {
     if ($null -ne $Choices) {
         $spectrePrompt = [Spectre.Console.TextPromptExtensions]::AddChoices($spectrePrompt, $Choices)
     }
-    return Invoke-SpectrePromptAsync -Prompt $spectrePrompt -TimeoutSeconds $TimeoutSeconds
+    return [PwshSpectreConsole.PowerShell.InvocationUtilities]::InvokePrompt($spectrePrompt, $TimeoutSeconds, $script:DefaultValueColor)
 }

@@ -2,33 +2,33 @@ Describe "Read-SpectreText" {
     InModuleScope "PwshSpectreConsole" {
         BeforeEach {
             $testAnswerColor = $null
-            Mock Invoke-SpectrePromptAsync {
-                $Prompt | Should -BeOfType [Spectre.Console.TextPrompt[string]]
-                if ($Prompt.PromptStyle.Foreground) {
-                    $Prompt.PromptStyle.Foreground.ToMarkup() | Should -Be $testAnswerColor
-                }
-            }
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::ResetTestHooks()
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::UseTestPromptResult = $true
         }
 
         It "prompts" {
             Read-SpectreText -Question (Get-RandomString)
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.TextPrompt[string]]
         }
 
         It "prompts with a default answer" {
             Read-SpectreText -Question (Get-RandomString) -DefaultAnswer (Get-RandomString)
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.TextPrompt[string]]
         }
 
         It "can allow an empty answer" {
             Read-SpectreText -Message "What?" -AllowEmpty
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.TextPrompt[string]]
         }
 
         It "can use a colored prompt" {
             $testAnswerColor = Get-RandomColor
             Read-SpectreText -Question (Get-RandomString) -AnswerColor $testAnswerColor
-            Assert-MockCalled -CommandName "Invoke-SpectrePromptAsync" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.InvocationUtilities]::PromptCallCount | Should -Be 1
+[PwshSpectreConsole.PowerShell.InvocationUtilities]::LastPrompt | Should -BeOfType [Spectre.Console.TextPrompt[string]]
         }
     }
 }

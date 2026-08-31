@@ -36,7 +36,7 @@ function New-SpectreGridRow {
 
     $renderableColumns = @()
     foreach ($column in $Data) {
-        $renderableColumns += ConvertTo-Renderable $column
+        $renderableColumns += [PwshSpectreConsole.PowerShell.RenderableUtilities]::ToRenderables($column)
     }
 
     $gridRow = [SpectreGridRow]::new($renderableColumns)

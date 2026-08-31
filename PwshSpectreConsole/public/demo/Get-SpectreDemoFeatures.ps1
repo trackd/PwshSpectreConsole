@@ -15,7 +15,7 @@ function Get-SpectreDemoFeatures {
     [Reflection.AssemblyMetadata("title", "Get-SpectreDemoFeatures")]
     param ()
 
-    $demoWidth = Get-HostWidth
+    $demoWidth = [PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidth()
 
     $title = Write-SpectreHost "[underline][yellow]PwshSpectreConsole[/][silver] Features[/][/]" -PassThru | Format-SpectreAligned -VerticalAlignment Middle
     $titleTable = Format-SpectreTable -Data @{
@@ -41,9 +41,9 @@ function Get-SpectreDemoFeatures {
     for ($b = 1; $b -le $brightnesses; $b+=2) {
         $line = ""
         for ($h = 0; $h -lt $hues; $h++) {
-            $rgb1 = Convert-HslToRgb -Hue ($h * 360 / $hues) -Saturation 100 -Lightness (($b * 95) / $brightnesses)
+            $rgb1 = [PwshSpectreConsole.PowerShell.ColorUtilities]::HslToRgb(($h * 360 / $hues), 100, (($b * 95) / $brightnesses))
             $color1 = [Spectre.Console.Color]::new($rgb1[0], $rgb1[1], $rgb1[2])
-            $rgb2 = Convert-HslToRgb -Hue ($h * 360 / $hues) -Saturation 100 -Lightness ((($b + 1) * 95) / $brightnesses)
+            $rgb2 = [PwshSpectreConsole.PowerShell.ColorUtilities]::HslToRgb(($h * 360 / $hues), 100, ((($b + 1) * 95) / $brightnesses))
             $color2 = [Spectre.Console.Color]::new($rgb2[0], $rgb2[1], $rgb2[2])
             $line += "[#$($color2.ToHex()) on #$($color1.ToHex())]$([char]0x2584)[/]"
         }

@@ -1,5 +1,3 @@
-using module "..\..\private\completions\Transformers.psm1"
-
 function New-SpectreLayout {
     <#
     .SYNOPSIS

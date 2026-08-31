@@ -4,10 +4,7 @@ Describe "Format-SpectreGrid" {
         BeforeEach {
             $testConsole = [Spectre.Console.Testing.TestConsole]::new()
             $testConsole.EmitAnsiSequences = $true
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.Rendering.Renderable]
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
         }
 
         It "Should format data in a grid" {
@@ -26,7 +23,7 @@ Describe "Format-SpectreGrid" {
             $renderable = $gridRows | Format-SpectreGrid
             $renderable | Should -BeOfType [Spectre.Console.Grid]
             $renderable | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
             { Assert-OutputMatchesSnapshot -SnapshotName "Format-SpectreGrid" -Output $testConsole.Output } | Should -Not -Throw
         }
     }

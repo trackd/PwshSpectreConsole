@@ -4,10 +4,10 @@ Describe "Read-SpectrePause" {
             $testMessage = $null
             Mock Write-SpectreHost -Verifiable -ParameterFilter { $Message -eq $testMessage }
             Mock Write-SpectreHost { }
-            Mock Clear-InputQueue
-            Mock Set-CursorPosition
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::ResetTestHooks()
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::ClearInputQueueOverride = { }
             Mock Write-Host
-            Mock Read-ConsoleKey {
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::ReadKeyOverride = {
                 $enter = [System.ConsoleKey]::Enter
                 return [System.ConsoleKeyInfo]::new([char]$enter.value__, $enter, $false, $false, $false)
             }
@@ -15,14 +15,14 @@ Describe "Read-SpectrePause" {
 
         It "displays" {
             Read-SpectrePause
-            Assert-MockCalled -CommandName "Read-ConsoleKey" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::ReadKeyCallCount | Should -Be 1
         }
 
         It "displays a custom message" {
             $testMessage = Get-RandomString
             Write-Debug $testMessage
             Read-SpectrePause -Message $testMessage
-            Assert-MockCalled -CommandName "Read-ConsoleKey" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::ReadKeyCallCount | Should -Be 1
             Should -InvokeVerifiable
         }
     }

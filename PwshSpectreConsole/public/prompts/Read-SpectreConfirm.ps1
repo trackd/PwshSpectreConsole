@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Read-SpectreConfirm {
     <#
     .SYNOPSIS
@@ -60,8 +57,8 @@ function Read-SpectreConfirm {
     $confirmationPrompt.ChoicesStyle = [Spectre.Console.Style]::new($Color)
     $confirmationPrompt.InvalidChoiceMessage = "[red]Please select one of the available options[/]"
 
-    # Invoke-SpectrePromptAsync supports ctrl-c
-    $confirmed = (Invoke-SpectrePromptAsync -Prompt $confirmationPrompt -TimeoutSeconds $TimeoutSeconds) -eq "y"
+    # The compiled prompt runner preserves ctrl-c support while waiting for the asynchronous prompt.
+    $confirmed = ([PwshSpectreConsole.PowerShell.InvocationUtilities]::InvokePrompt($confirmationPrompt, $TimeoutSeconds, $script:DefaultValueColor)) -eq "y"
 
     if (!$confirmed) {
         if (![String]::IsNullOrWhiteSpace($ConfirmFailure)) {

@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Format-SpectreTextPath {
     <#
     .SYNOPSIS
@@ -39,7 +36,7 @@ function Format-SpectreTextPath {
     param(
         [Parameter(ValueFromPipeline, Mandatory)]
         [string] $Path,
-        [ValidateSet([SpectreConsoleJustify], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
+        [ValidateSet([PwshSpectreConsole.SpectreConsoleJustify], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [string] $Alignment = "Left",
         [ColorThemeTransformationAttribute()]
         [hashtable] $PathStyle = @{}
@@ -51,7 +48,9 @@ function Format-SpectreTextPath {
         StemColor      = [Spectre.Console.Style]::new([Spectre.Console.Color]::Orange1)
         LeafColor      = [Spectre.Console.Style]::new([Spectre.Console.Color]::Red)
     }
-    Merge-HashtableDefaults -UserStyle $PathStyle -DefaultStyle $defaultPathStyle
+    foreach ($invalidKey in [PwshSpectreConsole.PowerShell.StyleUtilities]::MergeDefaults($PathStyle, $defaultPathStyle)) {
+        Write-Warning "Key '$invalidKey' is not a valid default style property and will be ignored, styles must be one of $($defaultPathStyle.Keys -join ', ')."
+    }
 
     $textPath = [PwshSpectreConsole.Render.SpectreTextPath]::new($Path)
     $textPath.Justification = [Spectre.Console.Justify]::$Alignment

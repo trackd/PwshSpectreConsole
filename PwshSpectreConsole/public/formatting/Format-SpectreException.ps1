@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Format-SpectreException {
     <#
     .SYNOPSIS
@@ -69,7 +66,7 @@ function Format-SpectreException {
     param(
         [Parameter(ValueFromPipeline, Mandatory)]
         [object] $Exception,
-        [ValidateSet([SpectreConsoleExceptionFormats], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
+        [ValidateSet([PwshSpectreConsole.SpectreConsoleExceptionFormats], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [string] $ExceptionFormat = "Default",
         [ColorThemeTransformationAttribute()]
         [hashtable] $ExceptionStyle = @{}
@@ -87,7 +84,9 @@ function Format-SpectreException {
         Dimmed         = [Spectre.Console.Style]::Parse("Grey")
         NonEmphasized  = [Spectre.Console.Style]::new($script:DefaultValueColor)
     }
-    Merge-HashtableDefaults -UserStyle $ExceptionStyle -DefaultStyle $defaultExceptionStyle
+    foreach ($invalidKey in [PwshSpectreConsole.PowerShell.StyleUtilities]::MergeDefaults($ExceptionStyle, $defaultExceptionStyle)) {
+        Write-Warning "Key '$invalidKey' is not a valid default style property and will be ignored, styles must be one of $($defaultExceptionStyle.Keys -join ', ')."
+    }
 
     if ($Exception -is [System.Management.Automation.ErrorRecord]) {
         $exceptionObject = $Exception.Exception

@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Format-SpectreAligned {
     <#
     .SYNOPSIS
@@ -29,9 +26,9 @@ function Format-SpectreAligned {
         [Parameter(ValueFromPipeline, Mandatory)]
         [RenderableTransformationAttribute()]
         [object] $Data,
-        [ValidateSet([SpectreConsoleHorizontalAlignment], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
+        [ValidateSet([PwshSpectreConsole.SpectreConsoleHorizontalAlignment], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [string] $HorizontalAlignment = "Center",
-        [ValidateSet([SpectreConsoleVerticalAlignment], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
+        [ValidateSet([PwshSpectreConsole.SpectreConsoleVerticalAlignment], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [string] $VerticalAlignment = "Middle"
     )
 

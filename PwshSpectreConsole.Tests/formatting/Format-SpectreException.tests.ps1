@@ -4,10 +4,7 @@ Describe "Format-SpectreException" {
         BeforeEach {
             $testConsole = [Spectre.Console.Testing.TestConsole]::new()
             $testConsole.EmitAnsiSequences = $true
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.Rendering.Renderable]
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
         }
 
         It "Should format an error record" {
@@ -19,7 +16,7 @@ Describe "Format-SpectreException" {
             }
             $renderable | Should -BeOfType [Spectre.Console.Rows]
             $renderable | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
             { Assert-OutputMatchesSnapshot -SnapshotName "Format-SpectreException" -Output $testConsole.Output } | Should -Not -Throw
         }
 
@@ -28,7 +25,7 @@ Describe "Format-SpectreException" {
             $renderable = Format-SpectreException -Exception $testException -ExceptionFormat ShortenEverything
             $renderable | Should -BeOfType [Spectre.Console.Rows]
             $renderable | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should format an exception with custom styles" {
@@ -52,7 +49,7 @@ Describe "Format-SpectreException" {
 
             $renderable | Should -BeOfType [Spectre.Console.Rows]
             $renderable | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
             { Assert-OutputMatchesSnapshot -SnapshotName "Format-SpectreException.CustomStyles" -Output $testConsole.Output } | Should -Not -Throw
         }
     }

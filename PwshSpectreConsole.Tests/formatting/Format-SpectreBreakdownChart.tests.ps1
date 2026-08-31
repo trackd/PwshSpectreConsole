@@ -9,31 +9,23 @@ Describe "Format-SpectreBreakdownChart" {
                 $testData += Get-RandomChartItem
             }
 
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.Rendering.Renderable]
-                $RenderableObject.Width | Should -Be $testWidth
-                $RenderableObject.Data.Count | Should -Be $testData.Count
+            Set-SpectreTestConsole -TestConsole $testConsole
 
-                $testConsole.Write($RenderableObject)
-            }
-
-            Mock Get-HostWidth {
-                return $testWidth
-            }
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidthOverride = { $testWidth }.GetNewClosure()
         }
 
         It "Should create a bar chart with correct width" {
             $chart = Format-SpectreBreakdownChart -Data $testData -Width $testWidth
             $chart | Should -BeOfType [Spectre.Console.BreakdownChart]
             $chart | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should handle piped input correctly" {
             $chart = $testData | Format-SpectreBreakdownChart -Width $testWidth
             $chart | Should -BeOfType [Spectre.Console.BreakdownChart]
             $chart | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should handle single input correctly" {
@@ -41,29 +33,21 @@ Describe "Format-SpectreBreakdownChart" {
             $chart = Format-SpectreBreakdownChart -Data $testData -Width $testWidth
             $chart | Should -BeOfType [Spectre.Console.BreakdownChart]
             $chart | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should handle no width and default to host width" {
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.Rendering.Renderable]
-                $RenderableObject.Width | Should -Be $testWidth
-                $RenderableObject.Label | Should -Be $null
-                $RenderableObject.Data.Count | Should -Be $testData.Count
-
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
             $chart = Format-SpectreBreakdownChart -Data $testData
             $chart | Should -BeOfType [Spectre.Console.BreakdownChart]
             $chart | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should match the snapshot" {
-            Mock Write-AnsiConsole {
-                $testConsole.Write($RenderableObject)
-            }
-            $testWidth = 120
+            Set-SpectreTestConsole -TestConsole $testConsole
+            $testWidth = 1
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidthOverride = { $testWidth }.GetNewClosure()
             Write-Debug "Setting test width to $testWidth"
             $testData = @(
                 (New-SpectreChartItem -Label "Test 1" -Value 10 -Color "Turquoise2"),

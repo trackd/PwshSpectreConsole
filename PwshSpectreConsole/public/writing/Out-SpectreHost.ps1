@@ -1,5 +1,3 @@
-using module "..\..\private\completions\Transformers.psm1"
-
 function Out-SpectreHost {
     <#
     .SYNOPSIS
@@ -35,10 +33,20 @@ function Out-SpectreHost {
     process {
         if ($Data -is [array]) {
             foreach ($dataItem in $Data) {
-                Write-AnsiConsole -RenderableObject $dataItem -CustomItemFormatter:$CustomItemFormatter
+                $output = [PwshSpectreConsole.PowerShell.ConsoleUtilities]::Render($dataItem, [bool]$script:SpectreRecordingType, $CustomItemFormatter, $Host.UI.RawUI.BufferSize.Width)
+                if ([PwshSpectreConsole.PowerShell.ConsoleUtilities]::RequiresDirectHostOutput($output, $CustomItemFormatter)) {
+                    "`n$output`e[2A" | Out-Host
+                } else {
+                    $output
+                }
             }
         } else {
-            Write-AnsiConsole -RenderableObject $Data -CustomItemFormatter:$CustomItemFormatter
+            $output = [PwshSpectreConsole.PowerShell.ConsoleUtilities]::Render($Data, [bool]$script:SpectreRecordingType, $CustomItemFormatter, $Host.UI.RawUI.BufferSize.Width)
+            if ([PwshSpectreConsole.PowerShell.ConsoleUtilities]::RequiresDirectHostOutput($output, $CustomItemFormatter)) {
+                "`n$output`e[2A" | Out-Host
+            } else {
+                $output
+            }
         }
     }
 

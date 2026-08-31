@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Write-SpectreFigletText {
     <#
     .SYNOPSIS
@@ -39,7 +36,7 @@ function Write-SpectreFigletText {
     [Reflection.AssemblyMetadata("title", "Write-SpectreFigletText")]
     param (
         [string] $Text = "Hello Spectre!",
-        [ValidateSet([SpectreConsoleJustify], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
+        [ValidateSet([PwshSpectreConsole.SpectreConsoleJustify], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [string] $Alignment = "Left",
         [ColorTransformationAttribute()]
         [ArgumentCompletionsSpectreColors()]
@@ -47,7 +44,7 @@ function Write-SpectreFigletText {
         [string] $FigletFontPath,
         [switch] $PassThru
     )
-    $figletFont = Read-FigletFont -FigletFontPath $FigletFontPath
+    $figletFont = [PwshSpectreConsole.PowerShell.ConsoleUtilities]::ReadFigletFont($FigletFontPath)
     $figletText = [Spectre.Console.FigletText]::new($figletFont, $Text)
     $figletText.Justification = [Spectre.Console.Justify]::$Alignment
     $figletText.Color = $Color
@@ -56,5 +53,10 @@ function Write-SpectreFigletText {
         return $figletText
     }
     
-    Write-AnsiConsole $figletText
+    return [PwshSpectreConsole.PowerShell.ConsoleUtilities]::Render(
+        $figletText,
+        [bool]$script:SpectreRecordingType,
+        $false,
+        $Host.UI.RawUI.BufferSize.Width
+    )
 }

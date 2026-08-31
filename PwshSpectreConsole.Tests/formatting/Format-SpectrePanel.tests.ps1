@@ -9,17 +9,7 @@ Describe "Format-SpectrePanel" {
             $testExpand = $false
             $testColor = Get-RandomColor
 
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.Panel]
-                $RenderableObject.Header.Text | Should -Be $testTitle
-                $RenderableObject.Expand | Should -Be $testExpand
-                $RenderableObject.BorderStyle.Foreground.ToMarkup() | Should -Be $testColor
-                if ($testBorder -ne "None") {
-                    $RenderableObject.Border.GetType().Name | Should -BeLike "*$testBorder*"
-                }
-
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
         }
 
         It "Should create a panel" {
@@ -27,7 +17,7 @@ Describe "Format-SpectrePanel" {
             $panel = Format-SpectrePanel -Data $randomString -Title $testTitle -Border $testBorder -Color $testColor
             $panel | Should -BeOfType [Spectre.Console.Panel]
             $panel | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
             $testConsole.Output | Should -BeLike "*$randomString*"
             $testConsole.Output | Should -BeLike "*$testTitle*"
         }
@@ -38,15 +28,13 @@ Describe "Format-SpectrePanel" {
             $panel = Format-SpectrePanel -Data $randomString -Title $testTitle -Border $testBorder -Expand:$testExpand -Color $testColor
             $panel | Should -BeOfType [Spectre.Console.Panel]
             $panel | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
             $testConsole.Output | Should -BeLike "*$randomString*"
             $testConsole.Output | Should -BeLike "*$testTitle*"
         }
 
         It "Should match the snapshot" {
-            Mock Write-AnsiConsole {
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
             $panel = Format-SpectrePanel -Data "This is a test panel" -Title "Test title" -Border "Rounded" -Color "Turquoise2"
             $panel | Should -BeOfType [Spectre.Console.Panel]
             $panel | Out-SpectreHost

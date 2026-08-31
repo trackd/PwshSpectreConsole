@@ -36,21 +36,16 @@ Describe "Format-SpectreJson" {
             $testData | Out-Null
             $testConsole | Out-Null
 
-            Mock Write-AnsiConsole {
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
         }
 
         It "tries to render a json" {
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.Json.JsonText]
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
 
             $json = Format-SpectreJson -Data $testData
             $json | Should -BeOfType [Spectre.Console.Json.JsonText]
             $json | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Simple scalar array test" {
@@ -94,9 +89,7 @@ Describe "Format-SpectreJson" {
         }
 
         It "Should match the snapshot" {
-            Mock Write-AnsiConsole {
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
             $json = Format-SpectreJson -Data $testData
             $json | Should -BeOfType [Spectre.Console.Json.JsonText]
             $json | Out-SpectreHost
@@ -104,10 +97,7 @@ Describe "Format-SpectreJson" {
         }
 
         It "Should format with a custom format" {
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.Json.JsonText]
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
             $json = Format-SpectreJson -Data $testData -JsonStyle @{
                 MemberStyle    = [Spectre.Console.Color]::Cyan1
                 BracesStyle    = [Spectre.Console.Color]::Cyan1

@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Read-SpectreMultiSelectionGrouped {
     <#
     .SYNOPSIS
@@ -96,7 +93,7 @@ function Read-SpectreMultiSelectionGrouped {
     $spectrePrompt.HighlightStyle = [Spectre.Console.Style]::new($Color)
     $spectrePrompt.InstructionsText = "[$($script:DefaultValueColor.ToMarkup())](Press [$($script:AccentColor.ToMarkup())]space[/] to toggle a choice and press [$($script:AccentColor.ToMarkup())]<enter>[/] to submit your answer)[/]"
     $spectrePrompt.MoreChoicesText = "[$($script:DefaultValueColor.ToMarkup())](Move up and down to reveal more choices)[/]"
-    $selected = Invoke-SpectrePromptAsync -Prompt $spectrePrompt -TimeoutSeconds $TimeoutSeconds
+    $selected = [PwshSpectreConsole.PowerShell.InvocationUtilities]::InvokePrompt($spectrePrompt, $TimeoutSeconds, $script:DefaultValueColor)
 
     if ($ChoiceLabelProperty -is [scriptblock]) {
         $selected = $flattenedChoices | Where-Object { $selected -contains (ForEach-Object -InputObject $_ -Process $ChoiceLabelProperty) }

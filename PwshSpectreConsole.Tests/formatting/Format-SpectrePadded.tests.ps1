@@ -4,10 +4,7 @@ Describe "Format-SpectrePadded" {
         BeforeEach {
             $testConsole = [Spectre.Console.Testing.TestConsole]::new()
             $testConsole.EmitAnsiSequences = $true
-            Mock Write-AnsiConsole {
-                $RenderableObject | Should -BeOfType [Spectre.Console.Rendering.Renderable]
-                $testConsole.Write($RenderableObject)
-            }
+            Set-SpectreTestConsole -TestConsole $testConsole
         }
 
         It "Should format data with padding around it" {
@@ -18,7 +15,7 @@ Describe "Format-SpectrePadded" {
             $renderable.Padding.Bottom | Should -Be 6
             $renderable.Padding.Right | Should -Be 6
             $renderable | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should format data with padding around it with specific padding values" {
@@ -29,14 +26,14 @@ Describe "Format-SpectrePadded" {
             $renderable.Padding.Bottom | Should -Be 1
             $renderable.Padding.Right | Should -Be 1
             $renderable | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
         }
 
         It "Should format data with padding around it with expanded padding" {
             $renderable = "Item to pad" | Format-SpectrePadded -Top 4 -Left 10 -Right 1 -Bottom 1 | Format-SpectrePanel
             $renderable | Should -BeOfType [Spectre.Console.Panel]
             $renderable | Out-SpectreHost
-            Assert-MockCalled -CommandName "Write-AnsiConsole" -Times 1 -Exactly
+            [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderCallCount | Should -Be 1
             { Assert-OutputMatchesSnapshot -SnapshotName "Format-SpectrePadded" -Output $testConsole.Output } | Should -Not -Throw
         }
     }

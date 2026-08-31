@@ -1,5 +1,3 @@
-using module "..\..\private\completions\Transformers.psm1"
-
 function Add-SpectreTableRow {
     <#
     .SYNOPSIS
@@ -40,7 +38,7 @@ function Add-SpectreTableRow {
         throw "The number of columns $($Columns.Count) in the row must match the number of columns in the table $($table.Columns.Count)"
     }
 
-    $renderableColumns = $Columns | Foreach-Object { $_ | ConvertTo-Renderable }
+    $renderableColumns = $Columns | Foreach-Object { [PwshSpectreConsole.PowerShell.RenderableUtilities]::ToRenderables($_) }
     $table = [Spectre.Console.TableExtensions]::AddRow($Table, [Spectre.Console.Rendering.Renderable[]]$renderableColumns)
 
     return $table

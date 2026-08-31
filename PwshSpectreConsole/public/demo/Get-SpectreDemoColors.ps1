@@ -18,18 +18,18 @@ function Get-SpectreDemoColors {
     param ()
 
     Write-SpectreHost " "
-    $width = Get-HostWidth
+    $width = [PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidth()
     $remainder = $width
     $colors = [Spectre.Console.Color] | Get-Member -Static -Type Properties | Select-Object -ExpandProperty Name
     $sortableColors = $colors | ForEach-Object {
         $color = [Spectre.Console.Color]::$_
-        $hsv = Convert-RgbToHsv -Red $color.R -Green $color.G -Blue $color.B
+        $hsv = [PwshSpectreConsole.PowerShell.ColorUtilities]::RgbToHsv($color.R, $color.G, $color.B)
         return [pscustomobject]@{
             Name = $_
             Color = $color
             Saturation = $hsv[1]
-            ColorCategory = Get-ColorCategory -Hue $hsv[0] -Saturation $hsv[1] -Value $hsv[2]
-            Lightness = Get-ColorLightness -Red $color.R -Green $color.G -Blue $color.B
+            ColorCategory = [PwshSpectreConsole.PowerShell.ColorUtilities]::GetCategory($hsv[0], $hsv[1], $hsv[2])
+            Lightness = [PwshSpectreConsole.PowerShell.ColorUtilities]::GetLightness($color.R, $color.G, $color.B)
         }
     }
     $colorCategories = $sortableColors | Group-Object ColorCategory

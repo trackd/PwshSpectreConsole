@@ -298,3 +298,34 @@ function CompareColorTables {
         }
     }
 }
+
+function Reset-SpectreTestHooks {
+    [PwshSpectreConsole.PowerShell.ConsoleUtilities]::ResetTestHooks()
+    [PwshSpectreConsole.PowerShell.InvocationUtilities]::ResetTestHooks()
+}
+
+function Set-SpectreTestConsole {
+    param(
+        [Parameter(Mandatory)]
+        [Spectre.Console.Testing.TestConsole] $TestConsole
+    )
+
+    [PwshSpectreConsole.PowerShell.ConsoleUtilities]::ResetTestHooks()
+    [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderOverride = {
+        param($renderable, $recording, $customItemFormatter, $bufferWidth)
+        $TestConsole.Write($renderable)
+        return $null
+    }.GetNewClosure()
+    [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderWithWidthOverride = {
+        param($renderable, $maxWidth, $recording)
+        [Spectre.Console.Testing.TestConsoleExtensions]::Width($TestConsole, $maxWidth)
+        $TestConsole.Write($renderable)
+        return $null
+    }.GetNewClosure()
+}
+
+function Set-SpectreTestPromptResult {
+    param([AllowNull()][object] $Result)
+    [PwshSpectreConsole.PowerShell.InvocationUtilities]::UseTestPromptResult = $true
+    [PwshSpectreConsole.PowerShell.InvocationUtilities]::TestPromptResult = $Result
+}

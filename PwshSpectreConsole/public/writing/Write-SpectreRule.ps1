@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Write-SpectreRule {
     <#
     .SYNOPSIS
@@ -60,7 +57,7 @@ function Write-SpectreRule {
         [Parameter(ParameterSetName = 'FixedWidth', Position = 0, ValueFromPipeline = $true)]
         [Parameter(ParameterSetName = 'PercentWidth', Position = 0, ValueFromPipeline = $true)]
         [string] $Title,
-        [ValidateSet([SpectreConsoleJustify], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
+        [ValidateSet([PwshSpectreConsole.SpectreConsoleJustify], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [string] $Alignment = "Left",
         [ColorTransformationAttribute()]
         [ArgumentCompletionsSpectreColors()]
@@ -89,16 +86,21 @@ function Write-SpectreRule {
 
     # Handle width customization
     if ($PSCmdlet.ParameterSetName -eq 'FixedWidth') {
-        Write-AnsiConsoleWithWidth -RenderableObject $rule -MaxWidth $Width | Out-Host
+        [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderWithWidth($rule, $Width, [bool]$script:SpectreRecordingType) | Out-Host
     }
     elseif ($PSCmdlet.ParameterSetName -eq 'PercentWidth') {
-        $consoleWidth = Get-HostWidth
+        $consoleWidth = [PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidth()
         $calculatedWidth = [Math]::Floor($consoleWidth * ($WidthPercent / 100))
         # Ensure minimum width of 1
         $calculatedWidth = [Math]::Max(1, $calculatedWidth)
-        Write-AnsiConsoleWithWidth -RenderableObject $rule -MaxWidth $calculatedWidth | Out-Host
+        [PwshSpectreConsole.PowerShell.ConsoleUtilities]::RenderWithWidth($rule, $calculatedWidth, [bool]$script:SpectreRecordingType) | Out-Host
     }
     else {
-        Write-AnsiConsole -RenderableObject $rule
+        return [PwshSpectreConsole.PowerShell.ConsoleUtilities]::Render(
+            $rule,
+            [bool]$script:SpectreRecordingType,
+            $false,
+            $Host.UI.RawUI.BufferSize.Width
+        )
     }
 }

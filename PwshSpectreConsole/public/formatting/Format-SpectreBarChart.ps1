@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Format-SpectreBarChart {
     <#
     .SYNOPSIS
@@ -41,8 +38,8 @@ function Format-SpectreBarChart {
         [object] $Data,
         [Alias("Title")]
         [String] $Label,
-        [ValidateScript({ $_ -gt 0 -and $_ -le (Get-HostWidth) }, ErrorMessage = "Value '{0}' is invalid. Cannot be negative or exceed console width.")]
-        [int] $Width = (Get-HostWidth),
+        [ValidateScript({ $_ -gt 0 -and $_ -le [PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidth() }, ErrorMessage = "Value '{0}' is invalid. Cannot be negative or exceed console width.")]
+        [int] $Width = ([PwshSpectreConsole.PowerShell.ConsoleUtilities]::GetHostWidth()),
         [switch] $HideValues
     )
     begin {
@@ -58,10 +55,10 @@ function Format-SpectreBarChart {
     process {
         if ($Data -is [array]) {
             foreach ($dataItem in $Data) {
-                $barChart = [Spectre.Console.BarChartExtensions]::AddItem($barChart, $dataItem.Label, $dataItem.Value, ($dataItem.Color | Convert-ToSpectreColor))
+                $barChart = [Spectre.Console.BarChartExtensions]::AddItem($barChart, $dataItem.Label, $dataItem.Value, [PwshSpectreConsole.PowerShell.ColorUtilities]::ToColorOrDefault($dataItem.Color, $script:AccentColor))
             }
         } else {
-            $barChart = [Spectre.Console.BarChartExtensions]::AddItem($barChart, $Data.Label, $Data.Value, ($Data.Color | Convert-ToSpectreColor))
+            $barChart = [Spectre.Console.BarChartExtensions]::AddItem($barChart, $Data.Label, $Data.Value, [PwshSpectreConsole.PowerShell.ColorUtilities]::ToColorOrDefault($Data.Color, $script:AccentColor))
         }
     }
     end {

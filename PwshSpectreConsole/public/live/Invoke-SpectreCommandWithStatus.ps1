@@ -1,6 +1,3 @@
-using module "..\..\private\completions\Completers.psm1"
-using module "..\..\private\completions\Transformers.psm1"
-
 function Invoke-SpectreCommandWithStatus {
     <#
     .SYNOPSIS
@@ -45,7 +42,7 @@ function Invoke-SpectreCommandWithStatus {
     param (
         [Parameter(Mandatory)]
         [scriptblock] $ScriptBlock,
-        [ValidateSet([SpectreConsoleSpinner], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
+        [ValidateSet([PwshSpectreConsole.SpectreConsoleSpinner], ErrorMessage = "Value '{0}' is invalid. Try one of: {1}")]
         [string] $Spinner = "Dots",
         [Parameter(Mandatory)]
         [string] $Title,
@@ -59,5 +56,10 @@ function Invoke-SpectreCommandWithStatus {
         SpinnerStyle = [Spectre.Console.Style]::new($Color)
         ScriptBlock  = $ScriptBlock
     }
-    Start-AnsiConsoleStatus @splat
+    return [PwshSpectreConsole.PowerShell.InvocationUtilities]::StartStatus(
+        $splat.Title,
+        $splat.Spinner,
+        $splat.SpinnerStyle,
+        $splat.ScriptBlock
+    )
 }

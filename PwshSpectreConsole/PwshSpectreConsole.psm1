@@ -1,5 +1,3 @@
-using module "./private/completions/Completers.psm1"
-
 $script:AccentColor = [Spectre.Console.Color]::Blue
 $script:DefaultValueColor = [Spectre.Console.Color]::Grey
 $script:DefaultTableHeaderColor = [Spectre.Console.Color]::Default
@@ -11,21 +9,15 @@ $script:DefaultTableTextColor = [Spectre.Console.Color]::Default
 # PS> $widget # uses the default powershell console writer
 # PS> $widget > file.txt # redirects as string data to file
 # PS> $widget | Out-SpectreHost # uses a dedicated console writer that doesn't pad the object like the default formatter
-$script:SpectreConsoleWriter = [System.IO.StringWriter]::new()
-$script:SpectreConsoleOutput = [Spectre.Console.AnsiConsoleOutput]::new($script:SpectreConsoleWriter)
-$script:SpectreConsoleSettings = [Spectre.Console.AnsiConsoleSettings]::new()
-$script:SpectreConsoleSettings.Out = $script:SpectreConsoleOutput
-$script:SpectreConsole = [Spectre.Console.AnsiConsole]::Create($script:SpectreConsoleSettings)
-
 # Initialize console dimensions to ensure they're valid (important for CI environments)
-Initialize-SpectreConsoleDimensions
+[PwshSpectreConsole.PowerShell.ConsoleUtilities]::EnsureDimensions()
 
 # cache the DA1 response.
 $script:TerminalSupportsSixel = [PwshSpectreConsole.Terminal.Compatibility]::TerminalSupportsSixel()
 
 $script:SpectreProfile = Get-SpectreProfile
 if ($script:SpectreProfile.Unicode -eq $true -or $env:IgnoreSpectreConsoleEncoding) {
-    return $script:SpectreConsole
+    return
 }
 
 if ($env:IgnoreSpectreEncoding -eq $true) {
